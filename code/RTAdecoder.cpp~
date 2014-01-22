@@ -1,0 +1,380 @@
+/***************************************************************************
+                          main.cpp  -  description
+                             -------------------
+    copyright            : (C) 2013 Andrea Bulgarelli
+                               2013 Andrea Zoli
+    email                : bulgarelli@iasfbo.inaf.it
+                           zoli@iasfbo.inaf.it
+ ***************************************************************************/
+
+/***************************************************************************
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ ***************************************************************************/
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <iostream>
+#include <stdlib.h>
+#include "CTACameraTriggerData.h"
+#include "CTACameraPedestal.h"
+#include "CTAPacketBufferQ.h"
+#include <time.h>
+
+using namespace std;
+
+/// Reading the Packet
+int mainR(int argc, char *argv[])
+{
+    try
+    {
+
+        clock_t t;
+        RTATelem::CTACameraTriggerData * trtel;
+        if(argc > 1) {
+        	/// The Packet containing the FADC value of each triggered telescope
+        	string ctarta;
+        	const char* home = getenv("CTARTA");
+
+        	if (!home)
+        	{
+        	   std::cerr << "CTARTA environment variable is not defined." << std::endl;
+        	   return 0;
+        	}
+
+        	ctarta = home;
+
+        	trtel = new RTATelem::CTACameraTriggerData(ctarta + "/share/rtatelem/rta_fadc.stream", argv[1], "");
+
+        } else {
+
+        	cerr << "Please, provide the .raw" << endl;
+        	return 0;
+        }
+        ///Read a telemetry packet from .raw file. Return 0 if end of file
+        ByteStreamPtr bs = trtel->readPacket();
+        byte* b_trtel = 0;
+        if(bs) b_trtel = bs->stream;
+        int counter = 1;
+        while(bs != 0) { //if not end of file
+            cout << "----"<<endl;
+            cout << "D: " << trtel->getInputPacketDimension(bs) << endl;
+            cout << "----" <<endl;
+
+			//print the overall content of the packet
+			//trtel->printPacket_input();
+
+			cout << "--" << endl;
+
+			//access the packet header information
+			cout << "APID: " << trtel->header->getAPID() << endl;
+			cout << "ssc: " << trtel->header->getSSC() << endl;
+
+			//access the metadata information (array id, run id, event id)
+			word arrayID;
+			word runNumberID;
+			trtel->header->getMetadata(arrayID, runNumberID);
+			cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
+			cout << "eventNumber:" << trtel->getEventNumber() << endl;
+
+			//trigger time
+			cout << "Telescope Time " << trtel->header->getTime() << endl;
+
+			//the number of telescopes that have triggered
+			cout << "Triggered telescopes: " << (long) trtel->getNumberOfTriggeredTelescopes() << endl;
+
+			//the index (zero-based) of the telescope that has triggerd
+			cout << "Index Of Current Triggered Telescope " << (long) trtel->getIndexOfCurrentTriggeredTelescope() << endl;
+			//the id of the telescope that has triggered
+			cout << "TelescopeId " << trtel->getTelescopeId() << endl;
+
+			word nPixels = trtel->getNumberOfPixels();
+			cout << "NumberOfPixels " << nPixels << endl;
+
+			//work with a single pixel of the telescope
+			word pixelIndex=0;
+
+			cout << "PixelId " << trtel->getPixelId(pixelIndex) << endl;
+			cout << "PixelId+1 " << trtel->getPixelId(pixelIndex+1) << endl;
+
+			word nsamples = trtel->getNumberOfSamples(pixelIndex);
+			cout << "Samples: " << nsamples << endl;
+
+			word sampleIndex=0;
+			cout << "SampleValue " << trtel->getSampleValue(pixelIndex, sampleIndex) << endl;
+
+			//******************
+			cout << "--- Direct access to array of samples" << endl;
+			//direct access to array of samples for each pixel
+			//1) get a pointer to ByteStream
+			ByteStreamPtr fadc = trtel->getPixelData(0);
+			//cout << fadc->printStreamInHexadecimal() << endl;
+			//2) swap for endianess
+			fadc->swapWordForIntel();
+			//3) get a pointer to word
+			word *c = (word*) fadc->stream;
+			cout << "pixel id " << c[0] << endl;
+			cout << "number of samples " << c[1] << endl;
+			cout << "value of first sample " << c[2] << endl;
+
+			word* onlySamples = c + 2;
+			cout << "Print all samples: ";
+			for(int i=0; i < nsamples; i++)
+				cout << " | " << onlySamples[i];
+			cout << endl;
+
+			cout << "!counter of source packets " << counter << endl;
+
+			///Read a telemetry packet from .raw file
+            bs = trtel->readPacket();
+            if(bs) b_trtel = bs->stream;
+
+            counter++;
+        }
+
+        t = clock() - t;
+        cout << "It took me " << t << " clicks (" << ((float)t)/CLOCKS_PER_SEC << " seconds)" << endl;
+        delete trtel;
+        cout << "END" << endl;
+        return 0;
+
+    }
+    catch(PacketExceptionIO* e)
+    {
+        cout << e->geterror() << endl;;
+    }
+    catch(PacketException* e)
+    {
+        cout << e->geterror() << endl;
+    }
+
+	return 1;
+}
+
+/// Reading the Pedestal Packet
+int mainPedestal(int argc, char *argv[])
+{
+    try
+    {
+
+        clock_t t;
+
+
+
+        /// The Packet containing the pedestal high values for each telescope
+        RTATelem::CTACameraPedestal * pedestal = new RTATelem::CTACameraPedestal("../share/rtatelem/rta_ped.stream", "out_pedestal.raw", "");
+
+
+        cout << "decode pedestal packet" << endl;
+
+        ByteStreamPtr bs = pedestal->readPacket();
+        byte* b_pedestal = 0;
+        if(bs) b_pedestal = bs->stream;
+        while(bs != 0) {
+            if(b_pedestal) {
+                //pedestal->printPacket_input();
+                cout << "--" << endl;
+                word arrayID;
+                word runNumber;
+                pedestal->header->getMetadata(arrayID, runNumber);
+                cout << "APID: " << pedestal->header->getAPID() << endl;
+                cout << "ssc: " << pedestal->header->getSSC() << endl;
+                cout << "metadata " << arrayID << endl;
+                cout << "TelescopeId " << pedestal->getTelescopeId() << endl;
+                cout << "channel " << pedestal->getChannel() << endl;
+                cout << "pedestal run " << pedestal->getPedestalRun() << endl;
+                cout << "NumberOfPixels " << pedestal->getNumberOfPixels() << endl;
+                cout << "PixelId " << pedestal->getPixelId(0) << endl;
+                cout << "Pedestal High Value " << pedestal->getPedestalValue(0) << endl;
+            }
+            bs = pedestal->readPacket();
+            if(bs) b_pedestal = bs->stream;
+        }
+
+        t = clock() - t;
+        //printf ("It took me %d clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
+        cout << "END" << endl;
+        return 0;
+
+    }
+    catch(PacketExceptionIO* e)
+    {
+        cout << e->geterror() << endl;;
+    }
+    catch(PacketException* e)
+    {
+        cout << e->geterror() << endl;
+    }
+
+	return 1;
+}
+
+
+/// Writing the Packet
+/// If used, remove the W from mainW
+int mainW(int argc, char *argv[])
+{
+    try
+    {
+        clock_t t;
+		 
+        /// The Packet containing the FADC value of each triggered telescope
+        RTATelem::CTACameraTriggerData trtelsss = RTATelem::CTACameraTriggerData("../share/rtatelem/rta_fadc.stream", "", "out_fadc2.raw");
+        RTATelem::CTACameraTriggerData * trtel = & trtelsss;
+        //RTATelem::CTATriggeredTelescope * trtel = new RTATelem::CTATriggeredTelescope("conf_ASTRI_S21/STRUCT.stream", "out_fadc.raw", "");
+        /// The Packet containing the pedestal high values for each telescope
+        RTATelem::CTACameraPedestal pedestalsss = RTATelem::CTACameraPedestal("../share/rtatelem/rta_ped.stream", "", "out_pedestal.raw");
+        RTATelem::CTACameraPedestal * pedestal = &pedestalsss;
+
+		
+
+        /// The attribute stores the event number
+        int evnum=10;
+
+        /// The attribute stores the number of triggered telescopes
+        int numberOfTriggeredTelescopes = 1;
+        for(int telindex = 0; telindex<numberOfTriggeredTelescopes; telindex++) {
+
+            trtel->header->setAPID(10);
+            trtel->header->setSSC(0);
+            trtel->header->setMetadata(1, 2);
+            trtel->header->setTime(1500);
+
+            trtel->setEventNumber(evnum);
+            trtel->setNumberOfTriggeredTelescopes(numberOfTriggeredTelescopes);
+            trtel->setIndexOfCurrentTriggeredTelescope(telindex);
+            trtel->setTelescopeId(telindex*10+5);
+
+            /// The attribute stores the number of pixels
+            word npixels = 1141;
+            /// The attribute stores the number of samples
+            word nsamples = 40;
+            trtel->setNumberOfPixels(npixels);
+
+            for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
+                trtel->setPixelId(pixelindex, pixelindex);
+                trtel->setNumberOfSamples(pixelindex, nsamples);
+                for(int sampleindex=0; sampleindex<nsamples; sampleindex++)
+                    trtel->setSampleValue(pixelindex, sampleindex, 3);
+            }
+
+            trtel->writePacket();
+
+            trtel->printPacket_output();
+
+        }
+		
+
+        /// The attribute stores the total number of telescopes
+        int numberOfTelescopes = 1;
+        for(int telindex = 0; telindex<numberOfTelescopes; telindex++) {
+
+            pedestal->header->setAPID(11);
+            pedestal->header->setSSC(0);
+            pedestal->header->setMetadata(1, 2);
+            pedestal->setChannel(1);
+            pedestal->setPedestalRun(0);
+            pedestal->setTelescopeId(telindex*10+5);
+
+            /// The attribute stores the total number of pixels
+            word npixels = 1141;
+
+            pedestal->setNumberOfPixels(npixels);
+
+            for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
+                pedestal->setPixelId(pixelindex, pixelindex);
+                pedestal->setPedestalValue(pixelindex, 2);
+            }
+
+            pedestal->writePacket();
+
+            pedestal->printPacket_output();
+
+        }
+
+        t = clock() - t;
+        //printf ("It took me %d clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
+        cout << "END" << endl;
+        return 0;
+
+    }
+    catch(PacketExceptionIO* e)
+    {
+        cout << e->geterror() << endl;;
+    }
+    catch(PacketException* e)
+    {
+        cout << e->geterror() << endl;
+    }
+
+	return 1;
+}
+
+int main(int argc, char *argv[])
+{
+	string ctarta;
+	const char* home = getenv("CTARTA");
+
+	if (!home) {
+		cerr << "CTARTA environment variable is not defined." << endl;
+		return 0;
+	}
+	ctarta = home;
+
+	if(argc != 2) {
+		cerr << "Please, provide the .raw" << endl;
+		return 0;
+	}
+
+	try {
+
+
+
+		RTATelem::CTAPacketBufferQ buff(ctarta + "/share/rtatelem/rta_fadc.stream", argv[1]);
+
+		cout << "1" << endl;
+		RTATelem::CTAPacket packet(ctarta + "/share/rtatelem/rta_fadc.stream");
+
+		cout << "1" << endl;
+		RTATelem::CTACameraTriggerData trtel(ctarta + "/share/rtatelem/rta_fadc.stream");
+
+		buff.load(0, 500);
+
+		cout << "start..." << endl;
+		clock_t t = clock();
+
+		int bufferSize = buff.size();
+		cout << "Source Packet Stream config file: " << packet.getPacketStreamConfig() << endl;
+		for(int i=0; i<bufferSize; i++) {
+			ByteStreamPtr rawPacket = buff.pop();
+			dword size = 0;
+			size = packet.getInputPacketDimension(rawPacket);
+			int type = -1;
+			type = packet.getInputPacketType(rawPacket);
+			switch(type) {
+			case 1:
+				trtel.setStream(rawPacket);
+				//cout << "Index Of Current Triggered Telescope " << (long) trtel.getIndexOfCurrentTriggeredTelescope() << endl;
+				break;
+
+			};
+			cout << "Packet #" << i << " size: " << size << " byte. type: " << type << endl;
+		}
+
+		t = clock() - t;
+		cout << "It took me " << t << " clicks (" << ((float)t)/CLOCKS_PER_SEC << " seconds)" << endl;
+		cout << "END" << endl;
+
+	} catch(PacketException* e)
+	{
+	        cout << e->geterror() << endl;
+	}
+
+	return 1;
+}
