@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------
 # General configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = BaseProject 
+PROJECT_NAME           = RTAdummyPacketLib 
 PROJECT_NUMBER         = 1.0.0
 OUTPUT_DIRECTORY       = ref
 OUTPUT_LANGUAGE        = English

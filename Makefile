@@ -70,7 +70,7 @@ CXX      = g++
 #Insert the optional parameter to the compiler. The CFLAGS could be changed externally by the user
 CFLAGS   = -g 
 #Set INCPATH to add the inclusion paths
-INCPATH = -I ./include  -I $(CTARTA)/include -L$(CTARTA)/lib
+INCPATH = -I ./include  -I $(CTARTA)/include -I$(CTARTA)/include/packet -L$(CTARTA)/lib
 #Insert the implicit parameter to the compiler:
 ALL_CFLAGS = -fexceptions -Wall $(INCPATH) $(CFLAGS)
 ifeq ($(SYSTEM), QNX)
