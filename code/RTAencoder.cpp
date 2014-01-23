@@ -3,8 +3,10 @@
                              -------------------
     copyright            : (C) 2013 Andrea Bulgarelli
                                2013 Andrea Zoli
+                               2014 Valentina Fioretti
     email                : bulgarelli@iasfbo.inaf.it
                            zoli@iasfbo.inaf.it
+                           fioretti@iasfbo.inaf.it
  ***************************************************************************/
 
 /***************************************************************************
@@ -34,12 +36,23 @@ int main(int argc, char *argv[])
     try
     {
         clock_t t;
-		 
-        /// The Packet containing the FADC value of each triggered telescope
-        // One packet for each triggere telescope
-        RTATelem::CTACameraTriggerData trtelsss = RTATelem::CTACameraTriggerData("../share/rtatelem/rta_fadc.stream", "", "out_dummy_fadc.raw");
-        RTATelem::CTACameraTriggerData * trtel = & trtelsss;	
 
+        string ctarta;
+        const char* home = getenv("CTARTA");
+
+        if (!home)
+        {
+        	std::cerr << "CTARTA environment variable is not defined." << std::endl;
+        	return 0;
+        }
+
+        ctarta = home;
+
+        /// The Packet containing the FADC value of each triggered telescope
+        // One packet for each triggered telescope
+        RTATelem::CTACameraTriggerData trtelsss = RTATelem::CTACameraTriggerData(ctarta + "/share/rtatelem/rta_fadc.stream", "", "out_dummy_fadc.raw");
+        RTATelem::CTACameraTriggerData * trtel = & trtelsss;	
+ 
         ///Number of events
         int numberOfEvent=10;
 
