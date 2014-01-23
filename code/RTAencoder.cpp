@@ -36,45 +36,64 @@ int main(int argc, char *argv[])
         clock_t t;
 		 
         /// The Packet containing the FADC value of each triggered telescope
+        // One packet for each triggere telescope
         RTATelem::CTACameraTriggerData trtelsss = RTATelem::CTACameraTriggerData("../share/rtatelem/rta_fadc.stream", "", "out_dummy_fadc.raw");
         RTATelem::CTACameraTriggerData * trtel = & trtelsss;	
 
-        /// The attribute stores the event number
-        int evnum=10;
+        ///Number of events
+        int numberOfEvent=10;
 
-        /// The attribute stores the number of triggered telescopes
-        int numberOfTriggeredTelescopes = 1;
-        for(int telindex = 0; telindex<numberOfTriggeredTelescopes; telindex++) {
+        /// The attribute stores the number of triggered telescopes for each event
+        int numberOfTriggeredTelescopes = 5;
 
-            trtel->header->setAPID(10);
-            trtel->header->setSSC(0);
-            trtel->header->setMetadata(1, 2);
-            trtel->header->setTime(1500);
+        for(int evtindex = 0; evtindex<numberOfTriggeredTelescopes; evtindex++) {
+            //for each triggere telescope, generate a telemetry packet
+            for(int telindex = 0; telindex<numberOfTriggeredTelescopes; telindex++) {
 
-            trtel->setEventNumber(evnum);
-            trtel->setNumberOfTriggeredTelescopes(numberOfTriggeredTelescopes);
-            trtel->setIndexOfCurrentTriggeredTelescope(telindex);
-            trtel->setTelescopeId(telindex*10+5);
+                //**************************
+                //set the header of the tm packet
+                trtel->header->setAPID(telindex); 	//the data generator (for now, the telescope)
+                trtel->header->setSSC(evtindex*numberOfEvent+telindex);	//a unique counter of packets
+                trtel->header->setMetadata(1, 2);	//the metadata
+                trtel->header->setTime(1500);	//the time
 
-            /// The attribute stores the number of pixels
-            word npixels = 1141;
-            /// The attribute stores the number of samples
-            word nsamples = 40;
-            trtel->setNumberOfPixels(npixels);
+                //**************************
+                //event information
+                int evnum = 10;
+                trtel->setEventNumber(evnum);	//another metadata: the event number (e.g. provided by event builder)
+                trtel->setNumberOfTriggeredTelescopes(numberOfTriggeredTelescopes);	//the number of triggere telescopes (provided by the event builder)
+                trtel->setIndexOfCurrentTriggeredTelescope(telindex);	//an internal index of the telescope within the event. This should be used
+                                        //to check data loss
+                trtel->setTelescopeId(telindex*10+5);	//the telescope that has triggered	
 
-            for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
-                trtel->setPixelId(pixelindex, pixelindex);
-                trtel->setNumberOfSamples(pixelindex, nsamples);
-                for(int sampleindex=0; sampleindex<nsamples; sampleindex++)
-                    trtel->setSampleValue(pixelindex, sampleindex, 3);
-            }
+                //**************************
+                //camera information
+                
+                //set the number of pixels and samples. In this way it is possible to manage different cameras with the same layout
+                // The attribute stores the number of pixels
+                word npixels = 1141;
+                // The attribute stores the number of samples
+                word nsamples = 40;
+                trtel->setNumberOfPixels(npixels);
 
-            trtel->writePacket();
+                //set information of the pixels and sample
+                for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
+                    trtel->setPixelId(pixelindex, pixelindex);
+                    trtel->setNumberOfSamples(pixelindex, nsamples);
+                    for(int sampleindex=0; sampleindex<nsamples; sampleindex++)
+                        trtel->setSampleValue(pixelindex, sampleindex, 3);
+                }
 
-            trtel->printPacket_output();
+                //and finally, write the packet to output (in this example, write the output to file)
+                trtel->writePacket();
 
-        }		
+                //just for check, write the content of the packet to stdout
+                trtel->printPacket_output();
 
+            }		
+
+        }
+        
         t = clock() - t;
         //printf ("It took me %d clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
         cout << "END" << endl;
