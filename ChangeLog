@@ -1,6 +1,10 @@
-2014-01-20 Valentina Fioretti <fioretti@iasfbo.inaf.it>
+2014-01-23 Valentina Fioretti <fioretti@iasfbo.inaf.it>
 TAG v1.0.0
-* first version based on RTAdecode1
+* RTAencoder main modified to check CTARTA variable set-up
+* RTAencoder dummy CTA triggered event modified by Andrea Bulgarelli
+
+2014-01-20 Valentina Fioretti <fioretti@iasfbo.inaf.it>
+* RTAdummyPacketLib created based on RTAdecode1
 
 
 
