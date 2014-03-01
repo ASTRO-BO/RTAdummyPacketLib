@@ -24,7 +24,7 @@
 
 #include <iostream>
 #include <stdlib.h>
-#include "CTACameraTriggerData.h"
+#include "CTACameraTriggerData1.h"
 #include "CTAPacketBufferQ.h"
 #include <time.h>
 
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     {
 
         clock_t t;
-        RTATelem::CTACameraTriggerData * trtel;
+        RTATelem::CTACameraTriggerData1 * trtel;
         if(argc > 1) {
         	/// The Packet containing the FADC value of each triggered telescope
         	string ctarta;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 
         	ctarta = home;
 
-        	trtel = new RTATelem::CTACameraTriggerData(ctarta + "/share/rtatelem/rta_fadc.stream", argv[1], "");
+        	trtel = new RTATelem::CTACameraTriggerData1(ctarta + "/share/rtatelem/rta_fadc1.stream", argv[1], "");
 
         } else {
 
@@ -82,6 +82,7 @@ int main(int argc, char *argv[])
 			word runNumberID;
 			trtel->header->getMetadata(arrayID, runNumberID);
 			cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
+			cout << "subtype " << trtel->header->getSubType() << endl;
 			cout << "eventNumber:" << trtel->getEventNumber() << endl;
 
 			//trigger time
