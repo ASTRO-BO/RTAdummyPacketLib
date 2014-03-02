@@ -26,6 +26,7 @@ SYSTEM = linux
 PROJECT= RTAdummyPacketLib
 EXE_NAME1 = RTAdecoder
 EXE_NAME2 = RTAencoder
+EXE_NAME3 = RTAtest1
 LIB_NAME = 
 VER_FILE_NAME = version.h
 #the name of the directory where the conf file are copied (into $(datadir))
@@ -157,6 +158,7 @@ exe: makeobjdir $(OBJECTS)
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME1) $(OBJECTS_DIR)/$(EXE_NAME1).o $(LIBS)
 		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME2) $(OBJECTS_DIR)/$(EXE_NAME2).o $(LIBS)
+		$(CC) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME3) $(OBJECTS_DIR)/$(EXE_NAME3).o $(LIBS)
 	
 staticlib: makelibdir makeobjdir $(OBJECTS)	
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	
@@ -189,6 +191,7 @@ clean:
 	$(DEL_FILE) $(LIB_DESTDIR)/*.so*
 	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME1)	
 	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME2)	
+	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME3)
 	$(DEL_FILE) version
 	$(DEL_FILE) prefix
 	$(DEL_FILE) $(PROJECT).dvi
@@ -223,7 +226,7 @@ install: all
 	
 	# For exe installation
 	test -d $(bindir) || mkdir -p $(bindir)	
-	$(COPY_FILE) $(EXE_DESTDIR)/$(EXE_NAME1) $(EXE_DESTDIR)/$(EXE_NAME2) $(bindir)
+	$(COPY_FILE) $(EXE_DESTDIR)/$(EXE_NAME1) $(EXE_DESTDIR)/$(EXE_NAME2) $(EXE_DESTDIR)/$(EXE_NAME3) $(bindir)
 	#copy icon
 	#test -d $(icondir) || mkdir -p $(icondir)
 	#$(COPY_FILE) $(ICON_DIR)/$(ICON_NAME) $(icondir)
@@ -243,7 +246,9 @@ uninstall:
 	$(DEL_FILE) $(addprefix $(includedir)/, $(notdir $(INCLUDE)))
 	
 	# For exe uninstall
-	$(DEL_FILE) $(bindir)/$(EXE_NAME)
+	$(DEL_FILE) $(bindir)/$(EXE_NAME1)
+	$(DEL_FILE) $(bindir)/$(EXE_NAME2)
+	$(DEL_FILE) $(bindir)/$(EXE_NAME3)
 	#$(DEL_FILE) $(icondir)/$(ICON_NAME)
 	
 #dist: create a distribution tar file for this program
