@@ -68,29 +68,32 @@ int main(int argc, char *argv[])
         RTATelem::CTACameraTriggerData1 * trtel;
 		
 		int test = 0;
-		if(argc == 1) {
-			cout << "exe file.raw test" << endl;
+		
+		if(argc < 4) {
+			cout << "exe file.raw testID(0/7) memcpy(0/1)" << endl;
 			cout << "where test is:" << endl;
 			cout << "0: check data model loading" << endl;
 			cout << "1: load data into a circular buffer" << endl;
 			cout << "2: decoding for routing (identification of the type of packet)" << endl;
 			cout << "3: decoding all the blocks of the packet" << endl;
-			cout << "4: decoding all the blocks of the packet" << endl;
-		}
-		if(argc == 3) {
-			test = atoi(argv[2]);
-			if(test == 0)
-				cout << "Test 0: check data model loading" << endl;
-			if(test == 1)
-				cout << "Test 1: check the loading of "<< buffersize << " camera data packets" << endl;
-			if(test == 2)
-				cout << "Test 2: decoding for routing (identification of the type of packet)" << endl;
-			if(test == 3)
-				cout << "Test 3: decoding all the blocks of the packet" << endl;
-			if(test == 4)
-				cout << "Test 4: decoding all the blocks of the packet" << endl;
+			exit(0);
 		}
 		
+		test = atoi(argv[2]);
+		if(test == 0)
+			cout << "Test 0: check data model loading" << endl;
+		if(test == 1)
+			cout << "Test 1: check the loading of "<< buffersize << " camera data packets" << endl;
+		if(test == 2)
+			cout << "Test 2: decoding for routing (identification of the type of packet)" << endl;
+		if(test == 3)
+			cout << "Test 3: decoding all the blocks of the packet (method 1 packetlib)" << endl;
+		if(test == 7)
+			cout << "Test 7: decoding all the blocks of the packet (method 2 packetlib::bytestream builder)" << endl;
+		
+		bool activatememorycopy = atoi(argv[3]);
+		if(activatememorycopy)
+			cout << "Test  : memcpy activated..." << endl;
 		
 		if(test == 0) {
 			clock_gettime( CLOCK_MONOTONIC, &start);
@@ -130,6 +133,8 @@ int main(int argc, char *argv[])
 		f.close();
 		//cout << filesize << endl;
 		
+		byte* buffermemory = new byte[2000*50];
+		
 		
 		try {
 			if(test == 1) {
@@ -146,49 +151,51 @@ int main(int argc, char *argv[])
 			
 			if(test == 7) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
-				ntimes = 1;
-				cout << "start Test 7 ... " << ntimes << endl;
+				ntimes = 100;
+				cout << "start Test 7 ... " << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 6) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 2;
-				cout << "start Test 6 ... " << ntimes << endl;
+				cout << "start Test 6 ... " << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 5) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 2;
-				cout << "start Test 5 ... " << ntimes << endl;
+				cout << "start Test 5 ... " << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 4) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 4;
-				cout << "start Test 4 ... "  << ntimes << endl;
+				cout << "start Test 4 ... "  << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 3) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
-				ntimes = 1;
-				cout << "start Test 3 ... " << ntimes << endl;
+				ntimes = 50;
+				cout << "start Test 3 ... " << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 2) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 1000;
-				cout << "start Test 2 ... " << ntimes << endl;
+				cout << "start Test 2 ... " << ntimes << " runs " << endl;
 				
 			}
 			
 			
 			long npacketsrun2 = buffersize * ntimes;
 			long npacketsread2 = 0;
+			
+			
 			while(npacketsread2 < npacketsrun2) {
 				ByteStreamPtr rawPacket = buff.getNext();
 				
@@ -207,6 +214,14 @@ int main(int argc, char *argv[])
 								ByteStreamPtr camera = trtel->getCameraDataSlow();
 								//cout << rawPacket->getDimension() << " " << camera->getDimension() << endl;
 								word *c = (word*) camera->stream;
+								if(activatememorycopy) {
+									memcpy(buffermemory, camera->stream, camera->getDimension());
+									/*
+									for(int i=0; i<10; i++)
+										cout << c[i] << endl;
+									cout << "--"<<endl;
+									*/
+								}
 								//use it
 								//cout << "value of first sample " << c[0] << endl;
 								//cout << "Index Of Current Triggered Telescope " << (long) trtel->getIndexOfCurrentTriggeredTelescope() << endl;
@@ -269,6 +284,7 @@ int main(int argc, char *argv[])
 								ByteStreamPtr camera = trtel->getCameraData(rawPacket);
 								//cout << camera->getDimension() << endl;
 								word *c = (word*) camera->stream;
+								if(activatememorycopy) memcpy(buffermemory, camera->stream, camera->getDimension());
 								//cout << "value of first sample " << c[0] << endl;
 							}
 							break;
@@ -277,6 +293,15 @@ int main(int argc, char *argv[])
 				
 				npacketsread2++;
 			};
+			
+			/*
+			if(activatememorycopy) {
+				word *c = (word*) buffermemory;
+				//cout << "M" << endl;
+				//for(int i=0; i<10; i++)
+				//	cout << c[i] << endl;
+			}
+			*/
 			
 			if(test == 2)
 				end(ntimes);
@@ -290,6 +315,9 @@ int main(int argc, char *argv[])
 				end(ntimes);
 			if(test == 7)
 				end(ntimes);
+			
+			
+				
 			
 		} catch(PacketException* e) {
 	        cout << e->geterror() << endl;
