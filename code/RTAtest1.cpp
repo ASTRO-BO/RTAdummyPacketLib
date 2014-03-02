@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 						case 3:
 							{
 								//access to a pointer of the camera data (all pixels) as a single block
-								//TODO OPTIMIZATION possible optimization: decoding of only the structural section of the packet
+								//inly the decoding of the sections is performed
 								trtel->setStream(rawPacket, true);
 								ByteStreamPtr camera = trtel->getCameraDataSlow();
 								//cout << rawPacket->getDimension() << " " << camera->getDimension() << endl;
@@ -216,6 +216,7 @@ int main(int argc, char *argv[])
 							{
 								
 								//access to a pointer of each pixel of a camera as a single block
+								//the decodigin of all the blocks is performed
 								trtel->setStream(rawPacket);
 								word npixels = trtel->getNumberOfPixels();
 								int pixel=0;
@@ -229,6 +230,8 @@ int main(int argc, char *argv[])
 							break;
 						case 5:
 							{
+								//acces to an array of samples
+								//the decodigin of all the blocks is performed
 								
 								trtel->setStream(rawPacket);
 								word npixels = trtel->getNumberOfPixels();
@@ -251,8 +254,11 @@ int main(int argc, char *argv[])
 							{
 								//access to the single sample of a pixel
 								//cout << "decode" << endl;
+								word npixels = trtel->getNumberOfPixels();
+								int pixel=0;
+								word nsamples = trtel->getNumberOfSamples(pixel);
 								trtel->setStream(rawPacket);
-								word sample = trtel->getSampleValue(0, 0);
+								word sample = trtel->getSampleValue(pixel, 0);
 								
 								
 
