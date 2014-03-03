@@ -38,10 +38,22 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <thread>
+
+bool iszero(double someValue) {
+	if(someValue == 0)
+		return true;
+	if (someValue <  std::numeric_limits<double>::epsilon() &&
+    	someValue > -std::numeric_limits<double>::epsilon())
+    	return true;
+    return false;
+}
+
 
 using namespace std;
 struct timespec start, stop;
 long filesize;
+unsigned long totbytes;
 
 void end(int ntimefilesize=1) {
 	
@@ -51,15 +63,206 @@ void end(int ntimefilesize=1) {
 	//std::cout << "Read " << ncycread << " ByteSeq: MB/s " << (float) (ncycread * Demo::ByteSeqSize / time) / 1048576 << std::endl;
 	cout << "Result: it took  " << time << " s" << endl;
 	if(filesize != 0)
-		cout << "Result: rate: " << setprecision(10) << filesize * ntimefilesize / 1000000 / time << " MiB/s" << endl;
+		cout << "Result: rate: " << setprecision(10) << totbytes / 1000000 / time << " MiB/s" << endl;
+	cout << totbytes << endl;
 	exit(0);
+}
+
+void printCamera(word* c, int ssc, int npixels, int nsamples) {
+	cout << "ssc " << ssc << endl;
+	for(int pixel = 0; pixel<npixels; pixel++) {
+		cout << pixel << " ";
+		for(int j=0; j<nsamples; j++)
+			cout << c[pixel * nsamples + j] << " ";
+		cout << endl;
+	}
+	
+}
+
+void printBuffer(word* c, int npixels, int nsamples) {
+	
+	for(int pixel = 0; pixel<npixels; pixel++) {
+		cout << pixel << " ";
+		for(int j=0; j<nsamples; j++)
+			cout << c[pixel * nsamples + j] << " ";
+		cout << endl;
+	}
+	
+}
+
+int flag = 0;
+
+void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
+	word *b = (word*) buffer; //should be pedestal subtractred
+	//printBuffer(b, npixels, nsamples);
+
+	/*
+	vector<int> maxres;
+	maxres.reserve(npixels);
+	vector<double> time;
+	time.reserve(npixels);
+	*/
+	
+	
+	int* maxres = new int[npixels];
+	double* time = new double[npixels];
+	
+	
+	
+	word bl[npixels*nsamples];
+	memcpy(bl, b, npixels*nsamples*sizeof(word));
+	
+	for(int pixel = 0; pixel<npixels; pixel++) {
+		word* s = bl + pixel * nsamples;
+		
+		/*
+		 if(flag == 0) {
+			cout << pixel << " ";
+			for(int k=0; k<nsamples; k++)
+				cout << s[k] << " ";
+			cout << endl;
+		}
+		*/
+		
+		long max = 0;
+		double maxt = 0;
+		long sumn = 0;
+		long sumd = 0;
+		double t = 0;
+		//long sumres[nsamples-ws];
+		
+		for(int i=0; i<=ws-1; i++) {
+			sumn += s[i] * i;
+			sumd += s[i];
+		}
+		//sumres[0] = sum;
+		for(int j=1; j<nsamples-ws; j++) {
+
+			sumn = sumn - s[j-1] * (j-1) + s[j+ws] * (j+ws);
+			sumd = sumd - s[j-1] + s[j+ws];
+			
+			if(!iszero(sumd))
+				t = sumn / (double)sumd;
+			//sumres[j] = sum;
+			if(sumd > max) {
+				max = sumd;
+				maxt = t;
+			}
+			
+			
+		}
+		
+		/*for(int j=0; j<nsamples-ws; j++)
+			if(sumres[j]>max) {
+				max = sumres[j];
+				maxj = j;
+			}
+		 */
+		
+		
+		//maxres.push_back(max);
+		//time.push_back(maxt);
+		
+		
+		maxres[pixel] = max;
+		time[pixel] = maxt;
+		
+		
+		//if(flag == 0) cout << pixel << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
+		
+		/*
+		for(int k=0; k<nsamples; k++)
+			cout << s[k] << " ";
+		cout << endl;
+		 */
+	}
+	//SharedPtr<double> shtime(maxt);
+	
+	flag = 1;
+	
+	
+}
+
+void calcWaveformExtraction3(byte* buffer, int npixels, int nsamples, int ws) {
+	word *b = (word*) buffer; //should be pedestal subtractred
+	/*
+	 vector<int> maxres;
+	 maxres.reserve(npixels);
+	 vector<int> time;
+	 time.reserve(npixels);
+	 */
+	word bl[npixels*nsamples];
+	memcpy(bl, b, npixels*nsamples);
+	for(int pixel = 0; pixel<npixels; pixel++) {
+		//word* s = bl + pixel * nsamples;
+		long indexstart = pixel * nsamples;
+		
+		long max = 0;
+		long maxj = 0;
+		long sum = 0;
+		for(int j=indexstart; j<indexstart+nsamples-ws; j++) {
+			if(j==indexstart)
+				for(int i=j; i<=j+ws-1; i++)
+					sum += bl[i];
+			else
+				sum = sum - bl[j-1] + bl[j+ws];
+			if(sum>max) {
+				max = sum;
+				maxj = j;
+			}
+			
+		}
+		//maxres.push_back(max);
+		//time.push_back(maxj);
+	}
+}
+
+
+void getMax(word* s, int ws, int nsamples, int maxj, long max ) {
+	
+	long sum = 0;
+	for(int j=0; j<nsamples-ws; j++) {
+		if(j==0)
+			for(int i=j; i<=j+ws-1; i++)
+				sum += s[i];
+		else
+			sum = sum - s[j-1] + s[j+ws];
+		if(sum>max) {
+			max = sum;
+			maxj = j;
+		}
+		
+	}
+}
+
+void calcWaveformExtraction2(byte* buffer, int npixels, int nsamples, int ws) {
+	word *b = (word*) buffer; //should be pedestal subtractred
+	/*
+	vector<int> maxres;
+	maxres.reserve(npixels);
+	vector<int> time;
+	time.reserve(npixels);
+	*/
+	for(int pixel = 0; pixel<npixels; pixel++) {
+		word* s = b + pixel * nsamples;
+		int maxj = 0;
+		long max = 0;
+		std::thread first(getMax, s, ws, nsamples, maxj, max);
+		//getMax(s, ws, nsamples, maxj, max);
+		//cout << pixel << endl;
+		first.join();
+		
+		
+		//maxres.push_back(max);
+		//time.push_back(maxj);
+	}
 }
 
 /// Reading the Packet
 int main(int argc, char *argv[])
 {
 	filesize = 0;
-	int buffersize = 100;
+	int buffersize;
 	
     try
     {
@@ -94,6 +297,10 @@ int main(int argc, char *argv[])
 		bool activatememorycopy = atoi(argv[3]);
 		if(activatememorycopy)
 			cout << "Test  : memcpy activated..." << endl;
+		
+		bool calcalg = atoi(argv[4]);
+		if(calcalg)
+			cout << "Test  : waveform extraction algorithm " << endl;
 		
 		if(test == 0) {
 			clock_gettime( CLOCK_MONOTONIC, &start);
@@ -139,10 +346,12 @@ int main(int argc, char *argv[])
 		try {
 			if(test == 1) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
-				cout << "start Test 1 ..." << endl;
+				cout << "Start Test 1 ..." << endl;
 			}
 			RTATelem::CTAPacketBufferV buff(ctarta + configFilaName, argv[1]);
-			buff.load(0, buffersize);
+			buff.load();
+			buffersize = buff.size();
+			cout << "Loaded " << buffersize << " packets " << endl;
 			
 			if(test == 1)
 				end();
@@ -152,42 +361,42 @@ int main(int argc, char *argv[])
 			if(test == 7) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 100;
-				cout << "start Test 7 ... " << ntimes << " runs " << endl;
+				cout << "Start Test 7 ... " << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 6) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 2;
-				cout << "start Test 6 ... " << ntimes << " runs " << endl;
+				cout << "Start Test 6 ... " << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 5) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 2;
-				cout << "start Test 5 ... " << ntimes << " runs " << endl;
+				cout << "Start Test 5 ... " << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 4) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 4;
-				cout << "start Test 4 ... "  << ntimes << " runs " << endl;
+				cout << "Start Test 4 ... "  << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 3) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 50;
-				cout << "start Test 3 ... " << ntimes << " runs " << endl;
+				cout << "Start Test 3 ... " << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 2) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 1000;
-				cout << "start Test 2 ... " << ntimes << " runs " << endl;
+				cout << "Start Test 2 ... " << ntimes << " runs " << endl;
 				
 			}
 			
@@ -196,11 +405,14 @@ int main(int argc, char *argv[])
 			long npacketsread2 = 0;
 			
 			
+			
 			while(npacketsread2 < npacketsrun2) {
 				ByteStreamPtr rawPacket = buff.getNext();
 				
 				dword size = 0;
 				size = trtel->getInputPacketDimension(rawPacket);
+				totbytes += size;
+				
 				int type = -1;
 				type = trtel->getInputPacketType(rawPacket);
 				//cout << "Packet #" << npacketsread2 << " size: " << size << " byte. type: " << type << endl;
@@ -222,11 +434,35 @@ int main(int argc, char *argv[])
 									cout << "--"<<endl;
 									*/
 								}
+								
+								
+								if(calcalg) {
+									word npixels = trtel->getNumberOfPixels();
+									int pixel = 0;
+									word nsamples = trtel->getNumberOfSamples(pixel);
+									
+									if(activatememorycopy)
+										calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
+									else
+										calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
+									
+								}
+
+								
+								/*
+								int ssc = trtel->header->getSSC();
+								if(npacketsread2 == 0)
+									printCamera(c, ssc, npixels, nsamples);
+								 */
+								//}
+								//cout << npixels << " " << nsamples << endl;
+								//calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
 								//use it
 								//cout << "value of first sample " << c[0] << endl;
 								//cout << "Index Of Current Triggered Telescope " << (long) trtel->getIndexOfCurrentTriggeredTelescope() << endl;
+								break;
 							}
-							break;
+							
 						case 4:
 							{
 								
@@ -241,8 +477,9 @@ int main(int argc, char *argv[])
 								//3) get a pointer to word
 								//word *c = (word*) fadc->stream;
 								//cout << "value of first sample " << c[0] << endl;
+								break;
 							}
-							break;
+							
 						case 5:
 							{
 								//acces to an array of samples
@@ -262,32 +499,67 @@ int main(int argc, char *argv[])
 								 cout << " | " << sample[i];
 								 cout << endl;
 								 */
-								
+								break;
 							}
-							break;
+							
 						case 6:
 							{
 								//access to the single sample of a pixel
 								//cout << "decode" << endl;
+								trtel->setStream(rawPacket);
+								//packet data
+								cout << "ssc: " << trtel->header->getSSC() << endl;
+								word arrayID;
+								word runNumberID;
+								trtel->header->getMetadata(arrayID, runNumberID);
+								cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
+								cout << "subtype " << trtel->header->getSubType() << endl;
+								cout << "eventNumber:" << trtel->getEventNumber() << endl;
+								//trigger time
+								cout << "Telescope Time " << trtel->header->getTime() << endl;
+								//the number of telescopes that have triggered
+								cout << "Triggered telescopes: " << (long) trtel->getNumberOfTriggeredTelescopes() << endl;
+								//the index (zero-based) of the telescope that has triggerd
+								cout << "Index Of Current Triggered Telescope " << (long) trtel->getIndexOfCurrentTriggeredTelescope() << endl;
+								//the id of the telescope that has triggered
+								cout << "TelescopeId " << trtel->getTelescopeId() << endl;
 								word npixels = trtel->getNumberOfPixels();
 								int pixel=0;
 								word nsamples = trtel->getNumberOfSamples(pixel);
-								trtel->setStream(rawPacket);
+								
 								word sample = trtel->getSampleValue(pixel, 0);
-								
-								
+								break;
 
 							}
-							break;
+							
 						case 7:
 							{
 								ByteStreamPtr camera = trtel->getCameraData(rawPacket);
+								
+								word npixels;
+								npixels = 1141;
+								int pixel=0;
+								word nsamples;
+								nsamples = 40;
+								//cout << npixels << " " << nsamples << endl;
 								//cout << camera->getDimension() << endl;
+
 								word *c = (word*) camera->stream;
+								//printBuffer(c, npixels, nsamples);
+								//exit(0);
 								if(activatememorycopy) memcpy(buffermemory, camera->stream, camera->getDimension());
+							
+								if(calcalg) {
+									if(activatememorycopy)
+										calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
+									else
+										calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
+											
+								}
 								//cout << "value of first sample " << c[0] << endl;
+								break;
 							}
-							break;
+							
 						 
 				}
 				
