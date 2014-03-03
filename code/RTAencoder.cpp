@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
         int numberOfTriggeredTelescopes = 5;
         srand(0);
 		long counts = 0;
+		word ssc = 0;
         for(int evtindex = 0; evtindex<numberOfEvent; evtindex++) {
 			cout << evtindex << endl;
             //for each triggere telescope, generate a telemetry packet
@@ -69,12 +70,12 @@ int main(int argc, char *argv[])
                 //**************************
                 //set the header of the tm packet
                 trtel->header->setAPID(telindex); 	//the data generator (for now, the telescope)
-                trtel->header->setSSC(evtindex*numberOfEvent+telindex);	//a unique counter of packets
+                trtel->header->setSSC(ssc);	//a unique counter of packets
                 trtel->header->setMetadata(1, 2);	//the metadata
-                trtel->header->setTime(1500);	//the time
+                trtel->header->setTime(1500+ssc);	//the time
                 word nsamples = 40;
                 trtel->header->setSubType(nsamples); //important, for fast packet identification
-
+				
                 //**************************
                 //event information
                 int evnum = 10;
@@ -93,21 +94,25 @@ int main(int argc, char *argv[])
                 // The attribute stores the number of samples
 
                 trtel->setNumberOfPixels(npixels);
-				cout << npixels << endl;
+				cout << "ssc " << ssc << endl;
 				trtel->setNumberOfPixelsID(0);
 
                 //set information of the pixels and sample
                 for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
                     //trtel->setPixelId(pixelindex, pixelindex);
                     trtel->setNumberOfSamples(pixelindex, nsamples);
+					if(counts == 0) cout << pixelindex << " ";
                     for(int sampleindex=0; sampleindex<nsamples; sampleindex++) {
                     	int val = (int)(rand() % 255);
                         trtel->setSampleValue(pixelindex, sampleindex, val);
+						if(counts == 0) cout << val << " ";
                     }
+					if(counts == 0) cout << endl;
                 }
 
                 //and finally, write the packet to output (in this example, write the output to file)
                 trtel->writePacket();
+				ssc++;
 				counts++;
 
                 //just for check, write the content of the packet to stdout
