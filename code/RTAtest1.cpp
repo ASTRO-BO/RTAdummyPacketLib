@@ -287,7 +287,7 @@ int main(int argc, char *argv[])
 		if(test == 0)
 			cout << "Test 0: check data model loading" << endl;
 		if(test == 1)
-			cout << "Test 1: check the loading of "<< buffersize << " camera data packets" << endl;
+			cout << "Test 1: check the loading of camera data packets" << endl;
 		if(test == 2)
 			cout << "Test 2: decoding for routing (identification of the type of packet)" << endl;
 		if(test == 3)
@@ -353,9 +353,15 @@ int main(int argc, char *argv[])
 			buff.load();
 			buffersize = buff.size();
 			cout << "Loaded " << buffersize << " packets " << endl;
+			totbytes = 0;
 			
-			if(test == 1)
+			if(test == 1) {
+				for(long i=0; i<buffersize; i++) {
+					ByteStreamPtr rawPacket = buff.getNext();
+					totbytes += trtel->getInputPacketDimension(rawPacket);
+				}
 				end();
+			}
 			
 			int ntimes;
 			
