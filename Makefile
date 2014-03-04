@@ -69,7 +69,7 @@ ICON_DIR = ui
 CC       = gcc
 CXX      = g++
 #Insert the optional parameter to the compiler. The CFLAGS could be changed externally by the user
-CFLAGS   = -g 
+CFLAGS   = -g -std="c++0x" -O2 
 #Set INCPATH to add the inclusion paths
 INCPATH = -I ./include  -I $(CTARTA)/include -I$(CTARTA)/include/packet -L$(CTARTA)/lib
 #Insert the implicit parameter to the compiler:
