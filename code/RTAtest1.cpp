@@ -97,12 +97,13 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 	//printBuffer(b, npixels, nsamples);
 
 	/*
-	vector<int> maxres;
-	maxres.reserve(npixels);
-	vector<double> time;
-	time.reserve(npixels);
+	vector<int> maxresv;
+	maxresv.reserve(npixels);
+	vector<double> timev;
+	timev.reserve(npixels);
+	int* maxres = &maxresv[0];
+	double* time = &timev[0];
 	*/
-	
 	
 	int* maxres = new int[npixels];
 	double* time = new double[npixels];
