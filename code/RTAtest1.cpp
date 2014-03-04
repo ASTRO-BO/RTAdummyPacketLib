@@ -117,7 +117,7 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		word* s = bl + pixel * nsamples;
 		
 		/*
-		 if(flag == 0) {
+		if(flag == 0) {
 			cout << pixel << " ";
 			for(int k=0; k<nsamples; k++)
 				cout << s[k] << " ";
@@ -129,18 +129,19 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		double maxt = 0;
 		long sumn = 0;
 		long sumd = 0;
+		long maxj = 0;
 		double t = 0;
 		//long sumres[nsamples-ws];
 		
-		for(int i=0; i<=ws-1; i++) {
-			sumn += s[i] * i;
-			sumd += s[i];
+		for(int j=0; j<=ws-1; j++) {
+			sumn += s[j] * j;
+			sumd += s[j];
 		}
 		//sumres[0] = sum;
 		for(int j=1; j<nsamples-ws; j++) {
 
 			sumn = sumn - s[j-1] * (j-1) + s[j+ws] * (j+ws);
-			sumd = sumd - s[j-1] + s[j+ws];
+			sumd = sumd - s[j-1] + s[j+ws-1];
 			
 			if(!iszero(sumd))
 				t = sumn / (double)sumd;
@@ -148,6 +149,7 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 			if(sumd > max) {
 				max = sumd;
 				maxt = t;
+				maxj = j;
 			}
 			
 			
@@ -169,7 +171,7 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		time[pixel] = maxt;
 		
 		
-		//if(flag == 0) cout << pixel << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
+		//if(flag == 0) cout << pixel << " " << maxj << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
 		
 		/*
 		for(int k=0; k<nsamples; k++)
