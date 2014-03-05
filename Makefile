@@ -67,7 +67,7 @@ ICON_DIR = ui
 ####### 4) Compiler, tools and options
 
 CC       = gcc
-CXX      = g++
+CXX      = $(CC)
 #Insert the optional parameter to the compiler. The CFLAGS could be changed externally by the user
 CFLAGS   = -g -std="c++0x" -O2 
 #Set INCPATH to add the inclusion paths

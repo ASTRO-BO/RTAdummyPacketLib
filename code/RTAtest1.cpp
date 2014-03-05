@@ -117,13 +117,14 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		word* s = bl + pixel * nsamples;
 		
 		/*
-		if(flag == 0) {
+		if(flag > 9000) {
+		
 			cout << pixel << " ";
 			for(int k=0; k<nsamples; k++)
 				cout << s[k] << " ";
 			cout << endl;
-		}
-		*/
+		}*/
+		
 		
 		long max = 0;
 		double maxt = 0;
@@ -171,7 +172,7 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		time[pixel] = maxt;
 		
 		
-		//if(flag == 0) cout << pixel << " " << maxj << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
+		//if(flag > 9000) cout << pixel << " " << maxj << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
 		
 		/*
 		for(int k=0; k<nsamples; k++)
@@ -181,7 +182,7 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 	}
 	//SharedPtr<double> shtime(maxt);
 	
-	flag = 1;
+	flag++;
 	
 	
 }
@@ -343,7 +344,7 @@ int main(int argc, char *argv[])
 		f.close();
 		//cout << filesize << endl;
 		
-		byte* buffermemory = new byte[2000*50];
+		byte* buffermemory = new byte[2000*50*sizeof(word)];
 		
 		
 		try {
@@ -367,9 +368,10 @@ int main(int argc, char *argv[])
 			
 			int ntimes;
 			
+			
 			if(test == 7) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
-				ntimes = 100;
+				ntimes = 100000;
 				cout << "Start Test 7 ... " << ntimes << " runs " << endl;
 				
 			}
@@ -390,14 +392,14 @@ int main(int argc, char *argv[])
 			
 			if(test == 4) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
-				ntimes = 4;
+				ntimes = 50;
 				cout << "Start Test 4 ... "  << ntimes << " runs " << endl;
 				
 			}
 			
 			if(test == 3) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
-				ntimes = 50;
+				ntimes = 500;
 				cout << "Start Test 3 ... " << ntimes << " runs " << endl;
 				
 			}
@@ -421,6 +423,16 @@ int main(int argc, char *argv[])
 				dword size = 0;
 				size = trtel->getInputPacketDimension(rawPacket);
 				totbytes += size;
+				
+				word npixels = 0;
+				word nsamples = 0;
+				if(npacketsread2 == 0) {
+					trtel->setStream(rawPacket, true);
+					word npixels = trtel->getNumberOfPixels();
+					int pixel = 0;
+					word nsamples = trtel->getNumberOfSamples(pixel);
+					cout << npixels << " " << nsamples << endl;
+				}
 				
 				int type = -1;
 				type = trtel->getInputPacketType(rawPacket);
@@ -477,7 +489,7 @@ int main(int argc, char *argv[])
 								
 								//access to a pointer of each pixel of a camera as a single block
 								//the decodigin of all the blocks is performed
-								trtel->setStream(rawPacket);
+								trtel->setStream(rawPacket, false);
 								word npixels = trtel->getNumberOfPixels();
 								int pixel=0;
 								//for(pixel=0; pixel<npixels; i++)
@@ -494,7 +506,7 @@ int main(int argc, char *argv[])
 								//acces to an array of samples
 								//the decodigin of all the blocks is performed
 								
-								trtel->setStream(rawPacket);
+								trtel->setStream(rawPacket, false);
 								word npixels = trtel->getNumberOfPixels();
 								int pixel=0;
 								word nsamples = trtel->getNumberOfSamples(pixel);
@@ -515,7 +527,7 @@ int main(int argc, char *argv[])
 							{
 								//access to the single sample of a pixel
 								//cout << "decode" << endl;
-								trtel->setStream(rawPacket);
+								trtel->setStream(rawPacket, false);
 								//packet data
 								cout << "ssc: " << trtel->header->getSSC() << endl;
 								word arrayID;
@@ -544,20 +556,23 @@ int main(int argc, char *argv[])
 						case 7:
 							{
 								ByteStreamPtr camera = trtel->getCameraData(rawPacket);
-								
+								/*
 								word npixels;
 								npixels = 1141;
 								int pixel=0;
 								word nsamples;
 								nsamples = 40;
+								 */
 								//cout << npixels << " " << nsamples << endl;
 								//cout << camera->getDimension() << endl;
 
 								word *c = (word*) camera->stream;
 								//printBuffer(c, npixels, nsamples);
 								//exit(0);
-								if(activatememorycopy) memcpy(buffermemory, camera->stream, camera->getDimension());
+								if(activatememorycopy) {
+									memcpy(buffermemory, camera->stream, camera->getDimension());
 							
+								}
 								if(calcalg) {
 									if(activatememorycopy)
 										calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
