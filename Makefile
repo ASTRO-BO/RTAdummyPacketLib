@@ -22,7 +22,7 @@ SHELL = /bin/sh
 ####### 1) Project names and system
 
 #SYSTEM: linux or QNX
-SYSTEM = linux
+SYSTEM= $(shell gcc -dumpmachine)
 PROJECT= RTAdummyPacketLib
 EXE_NAME1 = RTAdecoder
 EXE_NAME2 = RTAencoder
@@ -67,7 +67,7 @@ ICON_DIR = ui
 ####### 4) Compiler, tools and options
 
 CC       = gcc
-CXX      = g++
+CXX      = $(CC)
 #Insert the optional parameter to the compiler. The CFLAGS could be changed externally by the user
 CFLAGS   = -g -std="c++0x" -O2 
 #Set INCPATH to add the inclusion paths
@@ -84,6 +84,10 @@ LIBS = $(INCPATH) -lstdc++ -lRTAtelem  -lpacket
 ifeq ($(SYSTEM), QNX)
 	LIBS += -lsocket
 endif
+ifneq (, $(findstring linux, $(SYSTEM)))
+        LIBS += -lrt
+endif
+
 LINK     = g++
 #for link
 LFLAGS = -shared -Wl,-soname,$(TARGET1) -Wl,-rpath,$(DESTDIR)
