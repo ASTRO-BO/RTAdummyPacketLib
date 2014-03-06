@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
                 
         ///Read a telemetry packet from .raw file. Return 0 if end of file
   
-        ByteStreamPtr bs = trtel->readPacket();
+        ByteStreamPtr bs = trtel->readPacket(0);
         byte* b_trtel = 0;
         if(bs) b_trtel = bs->stream;
         int counter = 1;
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 			cout << "!counter of source packets " << counter << endl;
 
 			///Read a telemetry packet from .raw file
-            bs = trtel->readPacket();
+            bs = trtel->readPacket(0);
             if(bs) b_trtel = bs->stream;
 
             counter++;
