@@ -1,3 +1,9 @@
+2014-03-06 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
+<bulgarelli@iasfbo.inaf.it>, Valentina Fioretti <fioretti@iasfbo.inaf.it>
+TAG v1.1.0
+Dependncies PacketLib v3.4.0, RTAtelem v1.3.0
+* RTAtest1
+
 2014-01-23 Valentina Fioretti <fioretti@iasfbo.inaf.it>
 TAG v1.0.0
 * RTAencoder main modified to check CTARTA variable set-up

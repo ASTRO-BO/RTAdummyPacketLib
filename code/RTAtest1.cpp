@@ -22,6 +22,8 @@
 #include <config.h>
 #endif
 
+//#define PRINTALG 1
+
 #include <iostream>
 #include <stdlib.h>
 #include "CTACameraTriggerData1.h"
@@ -109,23 +111,24 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 	int* maxres = new int[npixels];
 	double* time = new double[npixels];
 	
+
+	//word bl[npixels*nsamples];
+	//memcpy(bl, b, npixels*nsamples*sizeof(word));
 	
 	
-	word bl[npixels*nsamples];
-	memcpy(bl, b, npixels*nsamples*sizeof(word));
 	
 	for(int pixel = 0; pixel<npixels; pixel++) {
-		word* s = bl + pixel * nsamples;
+		word* s = b + pixel * nsamples;
 		
-		/*
-		if(flag > 9000) {
+#ifdef PRINTALG
+		if(flag == 0) {
 		
 			cout << pixel << " ";
 			for(int k=0; k<nsamples; k++)
 				cout << s[k] << " ";
 			cout << endl;
-		}*/
-		
+		}
+#endif
 		
 		long max = 0;
 		double maxt = 0;
@@ -172,9 +175,10 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		maxres[pixel] = max;
 		time[pixel] = maxt;
 		
-		
-		//if(flag > 9000) cout << pixel << " " << maxj << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
-		
+#ifdef PRINTALG
+		//>9000
+		if(flag == 0) cout << pixel << " " << maxj << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
+#endif
 		/*
 		for(int k=0; k<nsamples; k++)
 			cout << s[k] << " ";
@@ -372,7 +376,7 @@ int main(int argc, char *argv[])
 			
 			if(test == 7) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
-				ntimes = 100000;
+				ntimes = 100;
 				cout << "Start Test 7 ... " << ntimes << " runs " << endl;
 				
 			}
@@ -416,7 +420,8 @@ int main(int argc, char *argv[])
 			long npacketsrun2 = buffersize * ntimes;
 			long npacketsread2 = 0;
 			
-			
+			word npixels = 0;
+			word nsamples = 0;
 			
 			while(npacketsread2 < npacketsrun2) {
 				ByteStreamPtr rawPacket = buff.getNext();
@@ -425,13 +430,12 @@ int main(int argc, char *argv[])
 				size = trtel->getInputPacketDimension(rawPacket);
 				totbytes += size;
 				
-				word npixels = 0;
-				word nsamples = 0;
+
 				if(npacketsread2 == 0) {
 					trtel->setStream(rawPacket, true);
-					word npixels = trtel->getNumberOfPixels();
+					npixels = trtel->getNumberOfPixels();
 					int pixel = 0;
-					word nsamples = trtel->getNumberOfSamples(pixel);
+					nsamples = trtel->getNumberOfSamples(pixel);
 					cout << npixels << " " << nsamples << endl;
 				}
 				
@@ -563,7 +567,7 @@ int main(int argc, char *argv[])
 								int pixel=0;
 								word nsamples;
 								nsamples = 40;
-								 */
+								*/
 								//cout << npixels << " " << nsamples << endl;
 								//cout << camera->getDimension() << endl;
 
