@@ -24,9 +24,9 @@
 
 #include <iostream>
 #include <stdlib.h>
-#include "CTACameraTriggerData.h"
+#include "CTACameraTriggerData1.h"
 #include "CTAPacketBufferQ.h"
-#include "CTAConfig.h"
+#include "RTAConfigLoad.h"
 #include <time.h>
 
 using namespace std;
@@ -38,8 +38,8 @@ int main(int argc, char *argv[])
     {
 
         clock_t t;
-        RTATelem::CTACameraTriggerData * trtel;
-        RTATelem::CTAConfig * ctaconf;
+        RTATelem::CTACameraTriggerData1 * trtel;
+        RTAConfig::RTAConfigLoad * ctaconf;
         if(argc > 1) {
         	/// The Packet containing the FADC value of each triggered telescope
         	string ctarta;
@@ -53,8 +53,8 @@ int main(int argc, char *argv[])
 
         	ctarta = home;
 
-        	trtel = new RTATelem::CTACameraTriggerData(ctarta + "/share/rtatelem/rta_fadc.stream", argv[1], "");
-        	ctaconf = new RTATelem::CTAConfig( ctarta + "/conf/PROD2_telconfig.fits.gz" );
+        	trtel = new RTATelem::CTACameraTriggerData1(ctarta + "/share/rtatelem/rta_fadc1.stream", argv[1], "");
+        	ctaconf = new RTAConfig::RTAConfigLoad( ctarta + "/conf/PROD2_telconfig.fits.gz" );
 
         } else {
 
@@ -101,8 +101,8 @@ int main(int argc, char *argv[])
 			cout << "TelescopeId " << trtel->getTelescopeId() << endl;
 
 			/// Read telescope configuration     
-			struct RTATelem::CTAConfig::Array *arrStruct = ctaconf->getArrayStruct();
-			struct RTATelem::CTAConfig::Telescope *telStruct = ctaconf->getTelescopeStruct(trtel->getTelescopeId());			
+			struct RTAConfig::RTAConfigLoad::Array *arrStruct = ctaconf->getArrayStruct();
+			struct RTAConfig::RTAConfigLoad::Telescope *telStruct = ctaconf->getTelescopeStruct(trtel->getTelescopeId());			
 			cout << "--------- Telescope Metadata ---------" << endl;
 			cout << "Array type: " << (*arrStruct).ArrayID << endl;
 			cout << "Array N telescopes: " << (*arrStruct).NTel << endl;
@@ -110,21 +110,22 @@ int main(int argc, char *argv[])
 			cout << "Telescope X: " << (*telStruct).TelX << endl;
 			cout << "Telescope Y: " << (*telStruct).TelY << endl;
 			cout << "Telescope Z: " << (*telStruct).TelZ << endl;
-			struct RTATelem::CTAConfig::TelescopeType *telTypeStruct = ctaconf->getTelescopeTypeStruct((*telStruct).fromTeltoTelType.TelType);
+			struct RTAConfig::RTAConfigLoad::TelescopeType *telTypeStruct = ctaconf->getTelescopeTypeStruct((*telStruct).fromTeltoTelType.TelType);
 			cout << "Telescope Mirror Type: " << (*telTypeStruct).fromTelTypetoMirType.mirType << endl;
 			cout << "Telescope Camera Type: " << (*telTypeStruct).fromTelTypetoCamType.camType << endl;
-			struct RTATelem::CTAConfig::MirrorType *mirTypeStruct = ctaconf->getMirrorTypeStruct((*telTypeStruct).fromTelTypetoMirType.mirType);
-			struct RTATelem::CTAConfig::CameraType *camTypeStruct = ctaconf->getCameraTypeStruct((*telTypeStruct).fromTelTypetoCamType.camType);
+			struct RTAConfig::RTAConfigLoad::MirrorType *mirTypeStruct = ctaconf->getMirrorTypeStruct((*telTypeStruct).fromTelTypetoMirType.mirType);
+			struct RTAConfig::RTAConfigLoad::CameraType *camTypeStruct = ctaconf->getCameraTypeStruct((*telTypeStruct).fromTelTypetoCamType.camType);
 			cout << "Mirror Area: " << (*mirTypeStruct).MirrorArea << endl;
 			cout << "Camera N Pixels: " << (*camTypeStruct).NPixel << endl;
 			cout << "Camera N Pixels active: " << (*camTypeStruct).NPixel_active << endl;
 			cout << "Camera Pixel type: " << (*camTypeStruct).fromCameratoPixType.pixType << endl;
-			struct RTATelem::CTAConfig::PixelType *pixTypeStruct = ctaconf->getPixelTypeStruct((*camTypeStruct).fromCameratoPixType.pixType);
+			struct RTAConfig::RTAConfigLoad::PixelType *pixTypeStruct = ctaconf->getPixelTypeStruct((*camTypeStruct).fromCameratoPixType.pixType);
 			cout << "Pixel ID for pixel 0: " << (*camTypeStruct).fromCameratoPixel[0].PixelID << endl;
 			cout << "XTubeMM for pixel 0: " << (*camTypeStruct).fromCameratoPixel[0].XTubeMM << endl;
 			cout << "YTubeMM for pixel 0: " << (*camTypeStruct).fromCameratoPixel[0].YTubeMM << endl;
 			cout << "RTubeMM for pixel 0: " << (*camTypeStruct).fromCameratoPixel[0].RTubeMM << endl;
-			
+			cout << "------------------------------------" << endl;
+		
 			word nPixels = trtel->getNumberOfPixels();
 			cout << "NumberOfPixels " << nPixels << endl;
 
@@ -139,26 +140,6 @@ int main(int argc, char *argv[])
 
 			word sampleIndex=0;
 			cout << "SampleValue " << trtel->getSampleValue(pixelIndex, sampleIndex) << endl;
-
-			//******************
-			cout << "--- Direct access to array of samples" << endl;
-			//direct access to array of samples for each pixel
-			//1) get a pointer to ByteStream
-			ByteStreamPtr fadc = trtel->getPixelData(0);
-			//cout << fadc->printStreamInHexadecimal() << endl;
-			//2) swap for endianess
-			fadc->swapWordForIntel();
-			//3) get a pointer to word
-			word *c = (word*) fadc->stream;
-			cout << "pixel id " << c[0] << endl;
-			cout << "number of samples " << c[1] << endl;
-			cout << "value of first sample " << c[2] << endl;
-
-			word* onlySamples = c + 2;
-			cout << "Print all samples: ";
-			for(int i=0; i < nsamples; i++)
-				cout << " | " << onlySamples[i];
-			cout << endl;
 
 			cout << "!counter of source packets " << counter << endl;
 
