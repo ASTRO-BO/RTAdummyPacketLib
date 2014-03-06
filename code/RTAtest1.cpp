@@ -38,8 +38,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <thread>
 #include <limits>
+//#include <thread>
 
 bool iszero(double someValue) {
 	if(someValue == 0)
@@ -240,15 +240,15 @@ void getMax(word* s, int ws, int nsamples, int maxj, long max ) {
 	}
 }
 
-void calcWaveformExtraction2(byte* buffer, int npixels, int nsamples, int ws) {
-	word *b = (word*) buffer; //should be pedestal subtractred
+/*void calcWaveformExtraction2(byte* buffer, int npixels, int nsamples, int ws) {
+	word *b = (word*) buffer; //should be pedestal subtractred*/
 	/*
 	vector<int> maxres;
 	maxres.reserve(npixels);
 	vector<int> time;
 	time.reserve(npixels);
 	*/
-	for(int pixel = 0; pixel<npixels; pixel++) {
+/*	for(int pixel = 0; pixel<npixels; pixel++) {
 		word* s = b + pixel * nsamples;
 		int maxj = 0;
 		long max = 0;
@@ -261,7 +261,7 @@ void calcWaveformExtraction2(byte* buffer, int npixels, int nsamples, int ws) {
 		//maxres.push_back(max);
 		//time.push_back(maxj);
 	}
-}
+}*/
 
 /// Reading the Packet
 int main(int argc, char *argv[])
