@@ -39,6 +39,7 @@
 #include <string>
 #include <vector>
 #include <thread>
+#include <limits>
 
 bool iszero(double someValue) {
 	if(someValue == 0)
