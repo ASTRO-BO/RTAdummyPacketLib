@@ -432,7 +432,7 @@ int main(int argc, char *argv[])
 				
 
 				if(npacketsread2 == 0) {
-					trtel->setStream(rawPacket, true);
+					trtel->setStream(rawPacket, 1);
 					npixels = trtel->getNumberOfPixels();
 					int pixel = 0;
 					nsamples = trtel->getNumberOfSamples(pixel);
@@ -448,7 +448,7 @@ int main(int argc, char *argv[])
 							{
 								//access to a pointer of the camera data (all pixels) as a single block
 								//inly the decoding of the sections is performed
-								trtel->setStream(rawPacket, true);
+								trtel->setStream(rawPacket, 0);
 								ByteStreamPtr camera = trtel->getCameraDataSlow();
 								//cout << rawPacket->getDimension() << " " << camera->getDimension() << endl;
 								word *c = (word*) camera->stream;
@@ -463,10 +463,10 @@ int main(int argc, char *argv[])
 								
 								
 								if(calcalg) {
-									word npixels = trtel->getNumberOfPixels();
-									int pixel = 0;
-									word nsamples = trtel->getNumberOfSamples(pixel);
-									
+									//word npixels = trtel->getNumberOfPixels();
+									//int pixel = 0;
+									//word nsamples = trtel->getNumberOfSamples(pixel);
+									//cout << npixels << " " << nsamples << endl;
 									if(activatememorycopy)
 										calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
 									else
@@ -494,7 +494,7 @@ int main(int argc, char *argv[])
 								
 								//access to a pointer of each pixel of a camera as a single block
 								//the decodigin of all the blocks is performed
-								trtel->setStream(rawPacket, false);
+								trtel->setStream(rawPacket, 2);
 								word npixels = trtel->getNumberOfPixels();
 								int pixel=0;
 								//for(pixel=0; pixel<npixels; i++)
@@ -511,7 +511,7 @@ int main(int argc, char *argv[])
 								//acces to an array of samples
 								//the decodigin of all the blocks is performed
 								
-								trtel->setStream(rawPacket, false);
+								trtel->setStream(rawPacket, 2);
 								word npixels = trtel->getNumberOfPixels();
 								int pixel=0;
 								word nsamples = trtel->getNumberOfSamples(pixel);
@@ -532,7 +532,7 @@ int main(int argc, char *argv[])
 							{
 								//access to the single sample of a pixel
 								//cout << "decode" << endl;
-								trtel->setStream(rawPacket, false);
+								trtel->setStream(rawPacket, 2);
 								//packet data
 								cout << "ssc: " << trtel->header->getSSC() << endl;
 								word arrayID;
@@ -552,8 +552,18 @@ int main(int argc, char *argv[])
 								word npixels = trtel->getNumberOfPixels();
 								int pixel=0;
 								word nsamples = trtel->getNumberOfSamples(pixel);
-								
-								word sample = trtel->getSampleValue(pixel, 0);
+								for(int i=0; i<nsamples; i++) {
+									word sample = trtel->getSampleValue(pixel, i);
+									cout << sample << " ";
+								}
+								cout << endl;
+								pixel = npixels - 1;
+								for(int i=0; i<nsamples; i++) {
+									word sample = trtel->getSampleValue(pixel, i);
+									cout << sample << " ";
+								}
+								cout << endl;
+								cout << "---" << endl;
 								break;
 
 							}

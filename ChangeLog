@@ -1,3 +1,7 @@
+2014-03-09 Andrea Bulgarelli <bulgarelli@iasfbo.inaf.it>
+TAG v1.2.0
+Dependencies: PacketLib v4.0.0, RTAtelem v1.4.0
+
 2014-03-06 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
 <bulgarelli@iasfbo.inaf.it>, Valentina Fioretti <fioretti@iasfbo.inaf.it>
 TAG v1.1.0
