@@ -26,10 +26,13 @@
 
 #include <iostream>
 #include <stdlib.h>
-#include "CTACameraTriggerData1.h"
-#include "CTAPacketBufferV.h"
+#include <CTACameraTriggerData1.h>
+#include <CTAPacketBufferV.h>
+#include <CTAStream.h>
+#include <CTADecoder.h>
 #include "mac_clock_gettime.h"
-#include "packet/File.h"
+#include <packet/File.h>
+#include <packet/PacketBufferV.h>
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
@@ -272,13 +275,9 @@ int main(int argc, char *argv[])
 {
 	filesize = 0;
 	int buffersize;
-	
-    try
-    {
 
-        
-        RTATelem::CTACameraTriggerData1 * trtel;
-		
+	try
+	{
 		int test = 0;
 		
 		if(argc < 4) {
@@ -327,30 +326,30 @@ int main(int argc, char *argv[])
 			clock_gettime( CLOCK_MONOTONIC, &start);
 			cout << "start Test 0 ..." << endl;
 		}
-		string configFilaName = "/share/rtatelem/rta_fadc_all.stream";
+		string configFileName = "/share/rtatelem/rta_fadc_all.stream";
 		string ctarta;
 		
-        if(argc > 1) {
+		if(argc > 1) {
         	/// The Packet containing the FADC value of each triggered telescope
         	
         	const char* home = getenv("CTARTA");
 
         	if (!home)
         	{
-        	   std::cerr << "ERROR: CTARTA environment variable is not defined." << std::endl;
-        	   return 0;
+				std::cerr << "ERROR: CTARTA environment variable is not defined." << std::endl;
+				return 0;
         	}
 
         	ctarta = home;
 
-        	trtel = new RTATelem::CTACameraTriggerData1(ctarta + configFilaName, argv[1], "");
-
-        } else {
-
+		} else {
         	cerr << "ERROR: Please, provide the .raw" << endl;
         	return 0;
-        }
-		
+		}
+
+		RTATelem::CTAStream stream(ctarta + "/share/rtatelem/rta_fadc1.stream", argv[1], "");
+		RTATelem::CTADecoder decoder(ctarta + "/share/rtatelem/rta_fadc1.stream");
+
 		if(test == 0)
 			end();
 		
@@ -363,91 +362,68 @@ int main(int argc, char *argv[])
 		
 		byte* buffermemory = new byte[2000*50*sizeof(word)];
 		
-		
 		try {
 			if(test == 1) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
 				cout << "Start Test 1 ..." << endl;
 			}
-			RTATelem::CTAPacketBufferV buff(ctarta + configFilaName, argv[1]);
+
+			PacketLib::PacketBufferV buff(ctarta + configFileName, argv[1]);
 			buff.load();
 			buffersize = buff.size();
 			cout << "Loaded " << buffersize << " packets " << endl;
 			totbytes = 0;
 			
+			ByteStreamPtr rawPacket = buff.getNext();
+			RTATelem::CTAPacket* packet = decoder.decode(rawPacket);
 			if(test == 1) {
 				for(long i=0; i<buffersize; i++) {
 					ByteStreamPtr rawPacket = buff.getNext();
-					totbytes += trtel->getInputPacketDimension(rawPacket);
+					totbytes += stream.getInputPacketDimension(rawPacket);
 				}
 				end();
 			}
-			
+
 			int ntimes;
 			
 			if(test == 10) {
-				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 10;
 				cout << "Start Test 9 ... " << ntimes << " runs " << endl;
-				
 			}
-			
 			if(test == 9) {
-				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 10;
 				cout << "Start Test 9 ... " << ntimes << " runs " << endl;
-				
 			}
-
 			if(test == 8) {
-				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 500;
 				cout << "Start Test 8 ... " << ntimes << " runs " << endl;
-				
 			}
-			
 			if(test == 7) {
-				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 5000;
 				cout << "Start Test 7 ... " << ntimes << " runs " << endl;
-				
 			}
-			
 			if(test == 6) {
-				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 2;
 				cout << "Start Test 6 ... " << ntimes << " runs " << endl;
-				
 			}
-			
 			if(test == 5) {
-				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 2;
 				cout << "Start Test 5 ... " << ntimes << " runs " << endl;
-				
 			}
-			
 			if(test == 4) {
-				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 50;
 				cout << "Start Test 4 ... "  << ntimes << " runs " << endl;
-				
 			}
-			
 			if(test == 3) {
-				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 500;
 				cout << "Start Test 3 ... " << ntimes << " runs " << endl;
-				
 			}
-			
 			if(test == 2) {
-				clock_gettime( CLOCK_MONOTONIC, &start);
 				ntimes = 1000;
 				cout << "Start Test 2 ... " << ntimes << " runs " << endl;
-				
 			}
-			
+
+			clock_gettime( CLOCK_MONOTONIC, &start);
 			
 			long npacketsrun2 = buffersize * ntimes;
 			long npacketsread2 = 0;
@@ -456,39 +432,34 @@ int main(int argc, char *argv[])
 			word nsamples = 0;
 			
 			while(npacketsread2 < npacketsrun2) {
-				ByteStreamPtr rawPacket = buff.getNext();
 				
 				dword size = 0;
-				size = trtel->getInputPacketDimension(rawPacket);
+				size = stream.getInputPacketDimension(rawPacket);
 				totbytes += size;
 				
-
-								
-				int type = -1;
-				type = trtel->getInputPacketType(rawPacket);
+				enum RTATelem::CTAPacketType type = packet->getPacketType();
 				//cout << "Packet #" << npacketsread2 << " size: " << size << " byte. type: " << type << endl;
-				if(type == 1) {
+				if(type == RTATelem::CTA_CAMERA_TRIGGERDATA_1) {
+					RTATelem::CTACameraTriggerData1* trtel = (RTATelem::CTACameraTriggerData1*) packet;
 					if(npacketsread2 == 0) {
-						trtel->setStream(rawPacket, true);
+//						trtel->setStream(rawPacket, true);
 						npixels = trtel->getNumberOfPixels();
 						int pixel = 0;
 						nsamples = trtel->getNumberOfSamples(pixel);
 						cout << npixels << " " << nsamples << endl;
 						//npixels = 1141; nsamples = 40;
 					}
-				}
-				if(type == 1)
 					switch(test) {
 						case 3:
 							{
 								//access to a pointer of the camera data (all pixels) as a single block
 								
-								trtel->setStream(rawPacket, true);
+//								trtel->setStream(rawPacket, true);
 								
 								//word subtype = trtel->header->getSubType();
 								ByteStreamPtr camera = trtel->getCameraDataSlow();
 								//cout << rawPacket->size() << " " << camera->size() << endl;
-								word *c = (word*) camera->stream;
+//								word *c = (word*) camera->stream;
 								if(activatememorycopy) {
 									memcpy(buffermemory, camera->stream, camera->size());
 									
@@ -515,7 +486,7 @@ int main(int argc, char *argv[])
 							{
 								
 								//packetlib access to an array of samples using packetlib to get the block
-								trtel->setStream(rawPacket, true);
+//								trtel->setStream(rawPacket, true);
 								int pixel = 0;
 								for(int i=0; i<nsamples; i++) {
 									word sample = trtel->getSampleValue(pixel, i);
@@ -545,7 +516,7 @@ int main(int argc, char *argv[])
 							{
 								//direct acces to an array of samples using packetlib to get the block
 								
-								trtel->setStream(rawPacket, true);
+//								trtel->setStream(rawPacket, true);
 								int pixel = 0;
 								ByteStreamPtr samplebs = trtel->getPixelData(pixel);
 								word* sample = (word*) samplebs->stream;
@@ -579,7 +550,7 @@ int main(int argc, char *argv[])
 						case 6:
 							{
 								//access to header and data field header with packetlib
-								trtel->setStream(rawPacket, true);
+//								trtel->setStream(rawPacket, true);
 								
 								word arrayID;
 								word runNumberID;
@@ -595,7 +566,6 @@ int main(int argc, char *argv[])
 								cout << "subtype " << subtype  << endl;
 								//trigger time
 								cout << "Telescope Time " << time << endl;
-								
 #endif
 							break;
 
@@ -615,7 +585,7 @@ int main(int argc, char *argv[])
 								//cout << npixels << " " << nsamples << endl;
 								//cout << camera->size() << endl;
 
-								word *c = (word*) camera->stream;
+//								word *c = (word*) camera->stream;
 								//printBuffer(c, npixels, nsamples);
 								//exit(0);
 								if(activatememorycopy) {
@@ -635,7 +605,7 @@ int main(int argc, char *argv[])
 						case 8:
 						{
 							//access to header, data field header and source data field (header)
-							trtel->setStream(rawPacket, true);
+//							trtel->setStream(rawPacket, true);
 							
 							word arrayID;
 							word runNumberID;
@@ -673,7 +643,7 @@ int main(int argc, char *argv[])
 						{
 							
 							//access to some structural information form source data field (packetlib)
-							trtel->setStream(rawPacket, true);
+//							trtel->setStream(rawPacket, true);
 							
 							word npixels = trtel->getNumberOfPixels();
 							int pixel=0;
@@ -687,7 +657,7 @@ int main(int argc, char *argv[])
 						case 10:
 						{
 							//access to some values form source data field (packetlib)
-							trtel->setStream(rawPacket, true);
+//							trtel->setStream(rawPacket, true);
 							trtel->getSampleValue(0, 0);
 							/*
 							for(int pixel=0; pixel<npixels; pixel++)
@@ -696,12 +666,12 @@ int main(int argc, char *argv[])
 							*/
 							break;
 						}
-							
-						 
+					}
 				}
-				
+
 				npacketsread2++;
-			};
+				rawPacket = buff.getNext();
+			}
 			
 			/*
 			if(activatememorycopy) {
@@ -734,9 +704,6 @@ int main(int argc, char *argv[])
 		} catch(PacketException* e) {
 	        cout << e->geterror() << endl;
 		}
-		
-		
-		
 	
         return 0;
 

@@ -33,7 +33,7 @@ using namespace std;
 /// Writing the Packet
 int main(int argc, char *argv[])
 {
-    try
+/*    try
     {
         clock_t t;
 
@@ -67,7 +67,6 @@ int main(int argc, char *argv[])
             for(int telindex = 0; telindex<numberOfTriggeredTelescopes; telindex++) {
 				
 
-                //**************************
                 //set the header of the tm packet
                 trtel->header->setAPID(telindex); 	//the data generator (for now, the telescope)
                 trtel->header->setSSC(ssc);	//a unique counter of packets
@@ -76,7 +75,6 @@ int main(int argc, char *argv[])
                 word nsamples = 40;
                 trtel->header->setSubType(nsamples); //important, for fast packet identification
 				
-                //**************************
                 //event information
                 int evnum = 10;
                 trtel->setEventNumber(evnum);	//another metadata: the event number (e.g. provided by event builder)
@@ -85,7 +83,6 @@ int main(int argc, char *argv[])
                                         //to check data loss
                 trtel->setTelescopeId(telindex*10+5);	//the telescope that has triggered	
 
-                //**************************
                 //camera information
                 
                 //set the number of pixels and samples. In this way it is possible to manage different cameras with the same layout
@@ -135,7 +132,7 @@ int main(int argc, char *argv[])
     catch(PacketException* e)
     {
         cout << e->geterror() << endl;
-    }
+    }*/
 
 	return 1;
 }
