@@ -22,7 +22,7 @@
 #include <config.h>
 #endif
 
-//#define PRINTALG 1
+#define PRINTALG 1
 
 #include <iostream>
 #include <stdlib.h>
@@ -299,9 +299,21 @@ int main(int argc, char *argv[])
 		if(test == 2)
 			cout << "Test 2: decoding for routing (identification of the type of packet)" << endl;
 		if(test == 3)
-			cout << "Test 3: decoding all the blocks of the packet (method 1 packetlib)" << endl;
+			cout << "Test 3: access to a pointer of the camera data (all pixels) as a single block (method 1 packetlib)" << endl;
+		if(test == 4)
+			cout << "Test 4: packetlib access to an array of samples using packetlib to get the block" << endl;
+		if(test == 5)
+			cout << "Test 5: direct acces to an array of samples using packetlib to get the block" << endl;
+		if(test == 6)
+			cout << "Test 6: access to header and data field header with packetlib" << endl;
 		if(test == 7)
 			cout << "Test 7: decoding all the blocks of the packet (method 2 packetlib::bytestream builder)" << endl;
+		if(test == 8)
+			cout << "Test 8: access to header, data field header and source data field (header)" << endl;
+		if(test == 9)
+			cout << "Test 9: access to some structural information form source data field (packetlib)" << endl;
+		if(test == 10)
+			cout << "Test 10: access to some values from source data field (packetlib)" << endl;
 		
 		bool activatememorycopy = atoi(argv[3]);
 		if(activatememorycopy)
@@ -373,10 +385,30 @@ int main(int argc, char *argv[])
 			
 			int ntimes;
 			
+			if(test == 10) {
+				clock_gettime( CLOCK_MONOTONIC, &start);
+				ntimes = 10;
+				cout << "Start Test 9 ... " << ntimes << " runs " << endl;
+				
+			}
+			
+			if(test == 9) {
+				clock_gettime( CLOCK_MONOTONIC, &start);
+				ntimes = 10;
+				cout << "Start Test 9 ... " << ntimes << " runs " << endl;
+				
+			}
+
+			if(test == 8) {
+				clock_gettime( CLOCK_MONOTONIC, &start);
+				ntimes = 500;
+				cout << "Start Test 8 ... " << ntimes << " runs " << endl;
+				
+			}
 			
 			if(test == 7) {
 				clock_gettime( CLOCK_MONOTONIC, &start);
-				ntimes = 100;
+				ntimes = 5000;
 				cout << "Start Test 7 ... " << ntimes << " runs " << endl;
 				
 			}
@@ -431,34 +463,35 @@ int main(int argc, char *argv[])
 				totbytes += size;
 				
 
-				if(npacketsread2 == 0) {
-					trtel->setStream(rawPacket, 1);
-					npixels = trtel->getNumberOfPixels();
-					int pixel = 0;
-					nsamples = trtel->getNumberOfSamples(pixel);
-					cout << npixels << " " << nsamples << endl;
-				}
-				
+								
 				int type = -1;
 				type = trtel->getInputPacketType(rawPacket);
 				//cout << "Packet #" << npacketsread2 << " size: " << size << " byte. type: " << type << endl;
+				if(type == 1) {
+					if(npacketsread2 == 0) {
+						trtel->setStream(rawPacket, true);
+						npixels = trtel->getNumberOfPixels();
+						int pixel = 0;
+						nsamples = trtel->getNumberOfSamples(pixel);
+						cout << npixels << " " << nsamples << endl;
+						//npixels = 1141; nsamples = 40;
+					}
+				}
 				if(type == 1)
 					switch(test) {
 						case 3:
 							{
 								//access to a pointer of the camera data (all pixels) as a single block
-								//inly the decoding of the sections is performed
-								trtel->setStream(rawPacket, 0);
+								
+								trtel->setStream(rawPacket, true);
+								
+								//word subtype = trtel->header->getSubType();
 								ByteStreamPtr camera = trtel->getCameraDataSlow();
-								//cout << rawPacket->getDimension() << " " << camera->getDimension() << endl;
+								//cout << rawPacket->size() << " " << camera->size() << endl;
 								word *c = (word*) camera->stream;
 								if(activatememorycopy) {
-									memcpy(buffermemory, camera->stream, camera->getDimension());
-									/*
-									for(int i=0; i<10; i++)
-										cout << c[i] << endl;
-									cout << "--"<<endl;
-									*/
+									memcpy(buffermemory, camera->stream, camera->size());
+									
 								}
 								
 								
@@ -474,102 +507,103 @@ int main(int argc, char *argv[])
 									
 								}
 
-								
-								/*
-								int ssc = trtel->header->getSSC();
-								if(npacketsread2 == 0)
-									printCamera(c, ssc, npixels, nsamples);
-								 */
-								//}
-								//cout << npixels << " " << nsamples << endl;
-								//calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
-								//use it
-								//cout << "value of first sample " << c[0] << endl;
-								//cout << "Index Of Current Triggered Telescope " << (long) trtel->getIndexOfCurrentTriggeredTelescope() << endl;
 								break;
 							}
+							
 							
 						case 4:
 							{
 								
-								//access to a pointer of each pixel of a camera as a single block
-								//the decodigin of all the blocks is performed
-								trtel->setStream(rawPacket, 2);
-								word npixels = trtel->getNumberOfPixels();
-								int pixel=0;
-								//for(pixel=0; pixel<npixels; i++)
-								ByteStreamPtr fadc = trtel->getPixelData(pixel);
-								
-								//3) get a pointer to word
-								//word *c = (word*) fadc->stream;
-								//cout << "value of first sample " << c[0] << endl;
+								//packetlib access to an array of samples using packetlib to get the block
+								trtel->setStream(rawPacket, true);
+								int pixel = 0;
+								for(int i=0; i<nsamples; i++) {
+									word sample = trtel->getSampleValue(pixel, i);
+#ifdef PRINTALG
+									cout << sample << " ";
+#endif
+								}
+#ifdef PRINTALG
+								cout << endl;
+#endif
+								pixel = npixels - 1;
+								for(int i=0; i<nsamples; i++) {
+									word sample = trtel->getSampleValue(pixel, i);
+#ifdef PRINTALG
+									cout << sample << " ";
+#endif
+								}
+#ifdef PRINTALG
+								cout << endl;
+								cout << "---" << endl;
+#endif
+
 								break;
 							}
 							
 						case 5:
 							{
-								//acces to an array of samples
-								//the decodigin of all the blocks is performed
+								//direct acces to an array of samples using packetlib to get the block
 								
-								trtel->setStream(rawPacket, 2);
-								word npixels = trtel->getNumberOfPixels();
-								int pixel=0;
-								word nsamples = trtel->getNumberOfSamples(pixel);
-								//cout << nsamples << endl;
+								trtel->setStream(rawPacket, true);
+								int pixel = 0;
 								ByteStreamPtr samplebs = trtel->getPixelData(pixel);
-								
 								word* sample = (word*) samplebs->stream;
-								/*
-								 cout << "Print all samples: ";
-								 for(int i=0; i < nsamples; i++)
-								 cout << " | " << sample[i];
-								 cout << endl;
-								 */
+								word s;
+								for(int i=0; i < nsamples; i++) {
+									s = sample[i];
+#ifdef PRINTALG
+									cout <<  s << " ";
+#endif
+								}
+#ifdef PRINTALG
+								cout << endl;
+#endif
+								pixel = npixels - 1;
+								samplebs = trtel->getPixelData(pixel);
+								sample = (word*) samplebs->stream;
+								for(int i=0; i<nsamples; i++) {
+									s = sample[i];
+#ifdef PRINTALG
+									cout << s << " ";
+#endif
+								}
+#ifdef PRINTALG
+								cout << endl;
+								cout << "---" << endl;
+#endif
+
 								break;
 							}
 							
 						case 6:
 							{
-								//access to the single sample of a pixel
-								//cout << "decode" << endl;
-								trtel->setStream(rawPacket, 2);
-								//packet data
-								cout << "ssc: " << trtel->header->getSSC() << endl;
+								//access to header and data field header with packetlib
+								trtel->setStream(rawPacket, true);
+								
 								word arrayID;
 								word runNumberID;
+								word ssc;
+								
 								trtel->header->getMetadata(arrayID, runNumberID);
+								ssc = trtel->header->getSSC();
+								word subtype = trtel->header->getSubType();
+								double time = trtel->header->getTime();
+#ifdef PRINTALG
+								cout << "ssc: " << ssc << endl;
 								cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
-								cout << "subtype " << trtel->header->getSubType() << endl;
-								cout << "eventNumber:" << trtel->getEventNumber() << endl;
+								cout << "subtype " << subtype  << endl;
 								//trigger time
-								cout << "Telescope Time " << trtel->header->getTime() << endl;
-								//the number of telescopes that have triggered
-								cout << "Triggered telescopes: " << (long) trtel->getNumberOfTriggeredTelescopes() << endl;
-								//the index (zero-based) of the telescope that has triggerd
-								cout << "Index Of Current Triggered Telescope " << (long) trtel->getIndexOfCurrentTriggeredTelescope() << endl;
-								//the id of the telescope that has triggered
-								cout << "TelescopeId " << trtel->getTelescopeId() << endl;
-								word npixels = trtel->getNumberOfPixels();
-								int pixel=0;
-								word nsamples = trtel->getNumberOfSamples(pixel);
-								for(int i=0; i<nsamples; i++) {
-									word sample = trtel->getSampleValue(pixel, i);
-									cout << sample << " ";
-								}
-								cout << endl;
-								pixel = npixels - 1;
-								for(int i=0; i<nsamples; i++) {
-									word sample = trtel->getSampleValue(pixel, i);
-									cout << sample << " ";
-								}
-								cout << endl;
-								cout << "---" << endl;
-								break;
+								cout << "Telescope Time " << time << endl;
+								
+#endif
+							break;
 
 							}
 							
 						case 7:
 							{
+								//access to blocks using only ByteStream
 								ByteStreamPtr camera = trtel->getCameraData(rawPacket);
 								/*
 								word npixels;
@@ -579,13 +613,13 @@ int main(int argc, char *argv[])
 								nsamples = 40;
 								*/
 								//cout << npixels << " " << nsamples << endl;
-								//cout << camera->getDimension() << endl;
+								//cout << camera->size() << endl;
 
 								word *c = (word*) camera->stream;
 								//printBuffer(c, npixels, nsamples);
 								//exit(0);
 								if(activatememorycopy) {
-									memcpy(buffermemory, camera->stream, camera->getDimension());
+									memcpy(buffermemory, camera->stream, camera->size());
 							
 								}
 								if(calcalg) {
@@ -598,6 +632,70 @@ int main(int argc, char *argv[])
 								//cout << "value of first sample " << c[0] << endl;
 								break;
 							}
+						case 8:
+						{
+							//access to header, data field header and source data field (header)
+							trtel->setStream(rawPacket, true);
+							
+							word arrayID;
+							word runNumberID;
+							word ssc;
+							
+							trtel->header->getMetadata(arrayID, runNumberID);
+							ssc = trtel->header->getSSC();
+							word subtype = trtel->header->getSubType();
+							double time = trtel->header->getTime();
+							
+							 word ntt = trtel->getNumberOfTriggeredTelescopes();
+							 word tt = trtel->getIndexOfCurrentTriggeredTelescope();
+							 word telid = trtel->getTelescopeId();
+							 word evtnum =  trtel->getEventNumber();
+							
+#ifdef PRINTALG
+							cout << "ssc: " << ssc << endl;
+							cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
+							cout << "subtype " << subtype  << endl;
+							cout << "eventNumber:" << evtnum << endl;
+							//trigger time
+							cout << "Telescope Time " << time << endl;
+							//the number of telescopes that have triggered
+							cout << "Triggered telescopes: " <<  ntt << endl;
+							//the index (zero-based) of the telescope that has triggerd
+							cout << "Index Of Current Triggered Telescope " << tt << endl;
+							//the id of the telescope that has triggered
+							cout << "TelescopeId " << telid << endl;
+#endif
+							break;
+							
+						}
+
+						case 9:
+						{
+							
+							//access to some structural information form source data field (packetlib)
+							trtel->setStream(rawPacket, true);
+							
+							word npixels = trtel->getNumberOfPixels();
+							int pixel=0;
+							word nsamples = trtel->getNumberOfSamples(pixel);
+#ifdef PRINTALG
+							cout << npixels << " " << nsamples << endl;
+#endif
+
+							break;
+						}
+						case 10:
+						{
+							//access to some values form source data field (packetlib)
+							trtel->setStream(rawPacket, true);
+							trtel->getSampleValue(0, 0);
+							/*
+							for(int pixel=0; pixel<npixels; pixel++)
+								for(int sample=0; sample < nsamples; sample++)
+									trtel->getSampleValue(pixel, sample);
+							*/
+							break;
+						}
 							
 						 
 				}
@@ -626,9 +724,12 @@ int main(int argc, char *argv[])
 				end(ntimes);
 			if(test == 7)
 				end(ntimes);
-			
-			
-				
+			if(test == 8)
+				end(ntimes);
+			if(test == 9)
+				end(ntimes);
+			if(test == 10)
+				end(ntimes);
 			
 		} catch(PacketException* e) {
 	        cout << e->geterror() << endl;
