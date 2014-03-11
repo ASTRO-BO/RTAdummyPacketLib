@@ -62,8 +62,6 @@ long filesize;
 unsigned long totbytes;
 
 void end(int ntimefilesize=1) {
-	
-	
 	clock_gettime( CLOCK_MONOTONIC, &stop);
 	double time = timediff(start, stop);
 	//std::cout << "Read " << ncycread << " ByteSeq: MB/s " << (float) (ncycread * Demo::ByteSeqSize / time) / 1048576 << std::endl;
@@ -71,7 +69,7 @@ void end(int ntimefilesize=1) {
 	if(filesize != 0)
 		cout << "Result: rate: " << setprecision(10) << totbytes / 1000000 / time << " MiB/s" << endl;
 	cout << totbytes << endl;
-	exit(0);
+	exit(1);
 }
 
 void printCamera(word* c, int ssc, int npixels, int nsamples) {
@@ -86,14 +84,12 @@ void printCamera(word* c, int ssc, int npixels, int nsamples) {
 }
 
 void printBuffer(word* c, int npixels, int nsamples) {
-	
 	for(int pixel = 0; pixel<npixels; pixel++) {
 		cout << pixel << " ";
 		for(int j=0; j<nsamples; j++)
 			cout << c[pixel * nsamples + j] << " ";
 		cout << endl;
 	}
-	
 }
 
 int flag = 0;
@@ -114,11 +110,8 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 	int* maxres = new int[npixels];
 	double* time = new double[npixels];
 	
-
 	//word bl[npixels*nsamples];
 	//memcpy(bl, b, npixels*nsamples*sizeof(word));
-	
-	
 	
 	for(int pixel = 0; pixel<npixels; pixel++) {
 		word* s = b + pixel * nsamples;
@@ -174,7 +167,6 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		//maxres.push_back(max);
 		//time.push_back(maxt);
 		
-		
 		maxres[pixel] = max;
 		time[pixel] = maxt;
 		
@@ -191,8 +183,6 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 	//SharedPtr<double> shtime(maxt);
 	
 	flag++;
-	
-	
 }
 
 void calcWaveformExtraction3(byte* buffer, int npixels, int nsamples, int ws) {
@@ -231,7 +221,6 @@ void calcWaveformExtraction3(byte* buffer, int npixels, int nsamples, int ws) {
 
 
 void getMax(word* s, int ws, int nsamples, int maxj, long max ) {
-	
 	long sum = 0;
 	for(int j=0; j<nsamples-ws; j++) {
 		if(j==0)
@@ -374,8 +363,6 @@ int main(int argc, char *argv[])
 			cout << "Loaded " << buffersize << " packets " << endl;
 			totbytes = 0;
 			
-			ByteStreamPtr rawPacket = buff.getNext();
-			RTATelem::CTAPacket* packet = decoder.decode(rawPacket);
 			if(test == 1) {
 				for(long i=0; i<buffersize; i++) {
 					ByteStreamPtr rawPacket = buff.getNext();
@@ -432,195 +419,187 @@ int main(int argc, char *argv[])
 			word nsamples = 0;
 			
 			while(npacketsread2 < npacketsrun2) {
-				
+
+				ByteStreamPtr rawPacket = buff.getNext();
+				RTATelem::CTAPacket& packet = decoder.getPacket(rawPacket);
+
 				dword size = 0;
-				size = stream.getInputPacketDimension(rawPacket);
+				size = decoder.getInputPacketDimension(rawPacket);
 				totbytes += size;
 				
-				enum RTATelem::CTAPacketType type = packet->getPacketType();
+				enum RTATelem::CTAPacketType type = packet.getPacketType();
 				//cout << "Packet #" << npacketsread2 << " size: " << size << " byte. type: " << type << endl;
 				if(type == RTATelem::CTA_CAMERA_TRIGGERDATA_1) {
-					RTATelem::CTACameraTriggerData1* trtel = (RTATelem::CTACameraTriggerData1*) packet;
+
+					RTATelem::CTACameraTriggerData1& trtel = (RTATelem::CTACameraTriggerData1&) packet;
+
 					if(npacketsread2 == 0) {
-//						trtel->setStream(rawPacket, true);
-						npixels = trtel->getNumberOfPixels();
+						trtel.decode(true);
+						npixels = trtel.getNumberOfPixels();
 						int pixel = 0;
-						nsamples = trtel->getNumberOfSamples(pixel);
+						nsamples = trtel.getNumberOfSamples(pixel);
 						cout << npixels << " " << nsamples << endl;
 						//npixels = 1141; nsamples = 40;
 					}
 					switch(test) {
 						case 3:
-							{
-								//access to a pointer of the camera data (all pixels) as a single block
-								
-//								trtel->setStream(rawPacket, true);
-								
-								//word subtype = trtel->header->getSubType();
-								ByteStreamPtr camera = trtel->getCameraDataSlow();
-								//cout << rawPacket->size() << " " << camera->size() << endl;
-//								word *c = (word*) camera->stream;
-								if(activatememorycopy) {
-									memcpy(buffermemory, camera->stream, camera->size());
-									
-								}
-								
-								
-								if(calcalg) {
-									//word npixels = trtel->getNumberOfPixels();
-									//int pixel = 0;
-									//word nsamples = trtel->getNumberOfSamples(pixel);
-									//cout << npixels << " " << nsamples << endl;
-									if(activatememorycopy)
-										calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
-									else
-										calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
-									
-								}
+						{
+							//access to a pointer of the camera data (all pixels) as a single block
+							trtel.decode(true);
 
-								break;
+							//word subtype = trtel.header->getSubType();
+							ByteStreamPtr camera = trtel.getCameraDataSlow();
+							//cout << rawPacket->size() << " " << camera->size() << endl;
+//							word *c = (word*) camera->stream;
+							if(activatememorycopy) {
+								memcpy(buffermemory, camera->stream, camera->size());
 							}
-							
-							
+
+							if(calcalg) {
+								//word npixels = trtel.getNumberOfPixels();
+								//int pixel = 0;
+								//word nsamples = trtel.getNumberOfSamples(pixel);
+								//cout << npixels << " " << nsamples << endl;
+								if(activatememorycopy)
+									calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
+								else
+									calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
+							}
+
+							break;
+						}
+
 						case 4:
-							{
-								
-								//packetlib access to an array of samples using packetlib to get the block
-//								trtel->setStream(rawPacket, true);
-								int pixel = 0;
-								for(int i=0; i<nsamples; i++) {
-									word sample = trtel->getSampleValue(pixel, i);
+						{
+							//packetlib access to an array of samples using packetlib to get the block
+							trtel.decode(true);
+							int pixel = 0;
+							for(int i=0; i<nsamples; i++) {
+								word sample = trtel.getSampleValue(pixel, i);
 #ifdef PRINTALG
-									cout << sample << " ";
+								cout << sample << " ";
 #endif
-								}
-#ifdef PRINTALG
-								cout << endl;
-#endif
-								pixel = npixels - 1;
-								for(int i=0; i<nsamples; i++) {
-									word sample = trtel->getSampleValue(pixel, i);
-#ifdef PRINTALG
-									cout << sample << " ";
-#endif
-								}
-#ifdef PRINTALG
-								cout << endl;
-								cout << "---" << endl;
-#endif
-
-								break;
 							}
-							
-						case 5:
-							{
-								//direct acces to an array of samples using packetlib to get the block
-								
-//								trtel->setStream(rawPacket, true);
-								int pixel = 0;
-								ByteStreamPtr samplebs = trtel->getPixelData(pixel);
-								word* sample = (word*) samplebs->stream;
-								word s;
-								for(int i=0; i < nsamples; i++) {
-									s = sample[i];
 #ifdef PRINTALG
-									cout <<  s << " ";
+							cout << endl;
 #endif
-								}
+							pixel = npixels - 1;
+							for(int i=0; i<nsamples; i++) {
+								word sample = trtel.getSampleValue(pixel, i);
 #ifdef PRINTALG
-								cout << endl;
+								cout << sample << " ";
 #endif
-								pixel = npixels - 1;
-								samplebs = trtel->getPixelData(pixel);
-								sample = (word*) samplebs->stream;
-								for(int i=0; i<nsamples; i++) {
-									s = sample[i];
-#ifdef PRINTALG
-									cout << s << " ";
-#endif
-								}
-#ifdef PRINTALG
-								cout << endl;
-								cout << "---" << endl;
-#endif
-
-								break;
 							}
-							
-						case 6:
-							{
-								//access to header and data field header with packetlib
-//								trtel->setStream(rawPacket, true);
-								
-								word arrayID;
-								word runNumberID;
-								word ssc;
-								
-								trtel->header->getMetadata(arrayID, runNumberID);
-								ssc = trtel->header->getSSC();
-								word subtype = trtel->header->getSubType();
-								double time = trtel->header->getTime();
 #ifdef PRINTALG
-								cout << "ssc: " << ssc << endl;
-								cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
-								cout << "subtype " << subtype  << endl;
-								//trigger time
-								cout << "Telescope Time " << time << endl;
+							cout << endl;
+							cout << "---" << endl;
 #endif
 							break;
-
+						}
+							
+						case 5:
+						{
+							//direct acces to an array of samples using packetlib to get the block
+							trtel.decode(true);
+							int pixel = 0;
+							ByteStreamPtr samplebs = trtel.getPixelData(pixel);
+							word* sample = (word*) samplebs->stream;
+							word s;
+							for(int i=0; i < nsamples; i++) {
+								s = sample[i];
+#ifdef PRINTALG
+								cout <<  s << " ";
+#endif
 							}
+#ifdef PRINTALG
+							cout << endl;
+#endif
+							pixel = npixels - 1;
+							samplebs = trtel.getPixelData(pixel);
+							sample = (word*) samplebs->stream;
+							for(int i=0; i<nsamples; i++) {
+								s = sample[i];
+#ifdef PRINTALG
+								cout << s << " ";
+#endif
+							}
+#ifdef PRINTALG
+							cout << endl;
+							cout << "---" << endl;
+#endif
+							break;
+						}
+							
+						case 6:
+						{
+							//access to header and data field header with packetlib
+							trtel.decode(true);
+
+							word arrayID;
+							word runNumberID;
+							word ssc;
+
+							trtel.header->getMetadata(arrayID, runNumberID);
+							ssc = trtel.header->getSSC();
+							word subtype = trtel.header->getSubType();
+							double time = trtel.header->getTime();
+#ifdef PRINTALG
+							cout << "ssc: " << ssc << endl;
+							cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
+							cout << "subtype " << subtype  << endl;
+							//trigger time
+							cout << "Telescope Time " << time << endl;
+#endif
+							break;
+						}
 							
 						case 7:
-							{
-								//access to blocks using only ByteStream
-								ByteStreamPtr camera = trtel->getCameraData(rawPacket);
-								/*
-								word npixels;
-								npixels = 1141;
-								int pixel=0;
-								word nsamples;
-								nsamples = 40;
-								*/
-								//cout << npixels << " " << nsamples << endl;
-								//cout << camera->size() << endl;
+						{
+							//access to blocks using only ByteStream
+							ByteStreamPtr camera = trtel.getCameraData(rawPacket);
+							/*
+							word npixels;
+							npixels = 1141;
+							int pixel=0;
+							word nsamples;
+							nsamples = 40;
+							*/
+							//cout << npixels << " " << nsamples << endl;
+							//cout << camera->size() << endl;
 
-//								word *c = (word*) camera->stream;
-								//printBuffer(c, npixels, nsamples);
-								//exit(0);
-								if(activatememorycopy) {
-									memcpy(buffermemory, camera->stream, camera->size());
-							
-								}
-								if(calcalg) {
-									if(activatememorycopy)
-										calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
-									else
-										calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
-											
-								}
-								//cout << "value of first sample " << c[0] << endl;
-								break;
+//							word *c = (word*) camera->stream;
+							//printBuffer(c, npixels, nsamples);
+							//exit(0);
+							if(activatememorycopy) {
+								memcpy(buffermemory, camera->stream, camera->size());
 							}
+							if(calcalg) {
+								if(activatememorycopy)
+									calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
+								else
+									calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
+							}
+							//cout << "value of first sample " << c[0] << endl;
+							break;
+						}
 						case 8:
 						{
 							//access to header, data field header and source data field (header)
-//							trtel->setStream(rawPacket, true);
+							trtel.decode(true);
 							
 							word arrayID;
 							word runNumberID;
 							word ssc;
 							
-							trtel->header->getMetadata(arrayID, runNumberID);
-							ssc = trtel->header->getSSC();
-							word subtype = trtel->header->getSubType();
-							double time = trtel->header->getTime();
+							trtel.header->getMetadata(arrayID, runNumberID);
+							ssc = trtel.header->getSSC();
+							word subtype = trtel.header->getSubType();
+							double time = trtel.header->getTime();
 							
-							 word ntt = trtel->getNumberOfTriggeredTelescopes();
-							 word tt = trtel->getIndexOfCurrentTriggeredTelescope();
-							 word telid = trtel->getTelescopeId();
-							 word evtnum =  trtel->getEventNumber();
-							
+							word ntt = trtel.getNumberOfTriggeredTelescopes();
+							word tt = trtel.getIndexOfCurrentTriggeredTelescope();
+							word telid = trtel.getTelescopeId();
+							word evtnum =  trtel.getEventNumber();
 #ifdef PRINTALG
 							cout << "ssc: " << ssc << endl;
 							cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
@@ -641,28 +620,26 @@ int main(int argc, char *argv[])
 
 						case 9:
 						{
-							
 							//access to some structural information form source data field (packetlib)
-//							trtel->setStream(rawPacket, true);
-							
-							word npixels = trtel->getNumberOfPixels();
+							trtel.decode(true);
+							word npixels = trtel.getNumberOfPixels();
 							int pixel=0;
-							word nsamples = trtel->getNumberOfSamples(pixel);
+							word nsamples = trtel.getNumberOfSamples(pixel);
 #ifdef PRINTALG
 							cout << npixels << " " << nsamples << endl;
 #endif
-
 							break;
 						}
+
 						case 10:
 						{
 							//access to some values form source data field (packetlib)
-//							trtel->setStream(rawPacket, true);
-							trtel->getSampleValue(0, 0);
+							trtel.decode(true);
+							trtel.getSampleValue(0, 0);
 							/*
 							for(int pixel=0; pixel<npixels; pixel++)
 								for(int sample=0; sample < nsamples; sample++)
-									trtel->getSampleValue(pixel, sample);
+									trtel.getSampleValue(pixel, sample);
 							*/
 							break;
 						}
@@ -670,7 +647,6 @@ int main(int argc, char *argv[])
 				}
 
 				npacketsread2++;
-				rawPacket = buff.getNext();
 			}
 			
 			/*
@@ -704,9 +680,6 @@ int main(int argc, char *argv[])
 		} catch(PacketException* e) {
 	        cout << e->geterror() << endl;
 		}
-	
-        return 0;
-
     }
     catch(PacketExceptionIO* e)
     {
@@ -717,5 +690,5 @@ int main(int argc, char *argv[])
         cout << e->geterror() << endl;
     }
 
-	return 1;
+	return 0;
 }

@@ -69,62 +69,63 @@ int main(int argc, char *argv[])
             cout << "----" <<endl;
 
 			//print the overall content of the packet
-			//trtel->printPacket_input();
+			//trtel.printPacket_input();
 
 			cout << "--" << endl;
 
 			// decode the byte stream
-			RTATelem::CTAPacket* packet = decoder.decode(bs);
-			if(packet->getPacketType() != RTATelem::CTA_CAMERA_TRIGGERDATA_1)
+			RTATelem::CTAPacket& packet = decoder.getPacket(bs);
+			if(packet.getPacketType() != RTATelem::CTA_CAMERA_TRIGGERDATA_1)
 			{
 				cerr << "Proveded a wrong .raw file. Expecting a CTA_CAMERA_TRIGGERDATA_1 type." << endl;
 				return 0;
 			}
-			RTATelem::CTACameraTriggerData1* trtel = (RTATelem::CTACameraTriggerData1*) packet;
+			RTATelem::CTACameraTriggerData1& trtel = (RTATelem::CTACameraTriggerData1&) packet;
+			trtel.decode(true);
 
 			//access the packet header information
-			cout << "APID: " << trtel->header->getAPID() << endl;
-			cout << "ssc: " << trtel->header->getSSC() << endl;
+			cout << "APID: " << trtel.header->getAPID() << endl;
+			cout << "ssc: " << trtel.header->getSSC() << endl;
 
 			//access the metadata information (array id, run id, event id)
 			word arrayID;
 			word runNumberID;
-			trtel->header->getMetadata(arrayID, runNumberID);
+			trtel.header->getMetadata(arrayID, runNumberID);
 			cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
-			cout << "subtype " << trtel->header->getSubType() << endl;
-			cout << "eventNumber:" << trtel->getEventNumber() << endl;
+			cout << "subtype " << trtel.header->getSubType() << endl;
+			cout << "eventNumber:" << trtel.getEventNumber() << endl;
 
 			//trigger time
-			cout << "Telescope Time " << trtel->header->getTime() << endl;
+			cout << "Telescope Time " << trtel.header->getTime() << endl;
 
 			//the number of telescopes that have triggered
-			cout << "Triggered telescopes: " << (long) trtel->getNumberOfTriggeredTelescopes() << endl;
+			cout << "Triggered telescopes: " << (long) trtel.getNumberOfTriggeredTelescopes() << endl;
 
 			//the index (zero-based) of the telescope that has triggerd
-			cout << "Index Of Current Triggered Telescope " << (long) trtel->getIndexOfCurrentTriggeredTelescope() << endl;
+			cout << "Index Of Current Triggered Telescope " << (long) trtel.getIndexOfCurrentTriggeredTelescope() << endl;
 			//the id of the telescope that has triggered
-			cout << "TelescopeId " << trtel->getTelescopeId() << endl;
+			cout << "TelescopeId " << trtel.getTelescopeId() << endl;
 
-			word nPixels = trtel->getNumberOfPixels();
+			word nPixels = trtel.getNumberOfPixels();
 			cout << "NumberOfPixels " << nPixels << endl;
 
 			//work with a single pixel of the telescope
 			word pixelIndex=0;
 
-			cout << "PixelId " << trtel->getPixelId(pixelIndex) << endl;
-			cout << "PixelId+1 " << trtel->getPixelId(pixelIndex+1) << endl;
+			cout << "PixelId " << trtel.getPixelId(pixelIndex) << endl;
+			cout << "PixelId+1 " << trtel.getPixelId(pixelIndex+1) << endl;
 
-			word nsamples = trtel->getNumberOfSamples(pixelIndex);
+			word nsamples = trtel.getNumberOfSamples(pixelIndex);
 			cout << "Samples: " << nsamples << endl;
 
 			word sampleIndex=0;
-			cout << "SampleValue " << trtel->getSampleValue(pixelIndex, sampleIndex) << endl;
+			cout << "SampleValue " << trtel.getSampleValue(pixelIndex, sampleIndex) << endl;
 
 			//******************
 			cout << "--- Direct access to array of samples" << endl;
 			//direct access to array of samples for each pixel
 			//1) get a pointer to ByteStream
-			ByteStreamPtr fadc = trtel->getPixelData(0);
+			ByteStreamPtr fadc = trtel.getPixelData(0);
 			//cout << fadc->printStreamInHexadecimal() << endl;
 			//2) swap for endianess
 			fadc->swapWordForIntel();

@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include "CTAStream.h"
 #include "CTACameraTriggerData1.h"
 #include <time.h>
 #include <math.h>
@@ -33,7 +34,7 @@ using namespace std;
 /// Writing the Packet
 int main(int argc, char *argv[])
 {
-/*    try
+    try
     {
         clock_t t;
 
@@ -50,8 +51,8 @@ int main(int argc, char *argv[])
 
         /// The Packet containing the FADC value of each triggered telescope
         // One packet for each triggered telescope
-        RTATelem::CTACameraTriggerData1 trtelsss = RTATelem::CTACameraTriggerData1(ctarta + "/share/rtatelem/rta_fadc1.stream", "", "out_dummy_fadc.raw");
-        RTATelem::CTACameraTriggerData1 * trtel = & trtelsss;
+        RTATelem::CTAStream stream = RTATelem::CTAStream(ctarta + "/share/rtatelem/rta_fadc1.stream", "", "out_dummy_fadc.raw");
+        RTATelem::CTACameraTriggerData1* trtel = (RTATelem::CTACameraTriggerData1*) stream.getNewPacket(RTATelem::CTA_CAMERA_TRIGGERDATA_1);
  
         ///Number of events
         int numberOfEvent=20;
@@ -108,7 +109,7 @@ int main(int argc, char *argv[])
                 }
 
                 //and finally, write the packet to output (in this example, write the output to file)
-                trtel->writePacket();
+                stream.writePacket(trtel->getInputPacketData());
 				ssc++;
 				counts++;
 
@@ -132,7 +133,7 @@ int main(int argc, char *argv[])
     catch(PacketException* e)
     {
         cout << e->geterror() << endl;
-    }*/
+    }
 
 	return 1;
 }
