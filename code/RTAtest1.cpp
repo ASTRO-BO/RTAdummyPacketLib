@@ -22,7 +22,7 @@
 #include <config.h>
 #endif
 
-#define PRINTALG 1
+//#define PRINTALG 1
 
 #include <iostream>
 #include <stdlib.h>
