@@ -27,7 +27,6 @@
 #include <iostream>
 #include <stdlib.h>
 #include <CTACameraTriggerData1.h>
-#include <CTAPacketBufferV.h>
 #include <CTAStream.h>
 #include <CTADecoder.h>
 #include "mac_clock_gettime.h"
