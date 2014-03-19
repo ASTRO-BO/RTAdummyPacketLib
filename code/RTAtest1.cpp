@@ -137,17 +137,26 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 			sumn += s[j] * j;
 			sumd += s[j];
 		}
+		
+		max = sumd;
+		if(!iszero(sumd))
+			t = sumn / (double)sumd;
+		maxt = t;
+		maxj = 0;
+		
+		//cout << sumn << " " << sumd << endl;
 		//sumres[0] = sum;
 		for(int j=1; j<nsamples-ws; j++) {
 
-			sumn = sumn - s[j-1] * (j-1) + s[j+ws] * (j+ws);
+			sumn = sumn - s[j-1] * (j-1) + s[j+ws-1] * (j+ws-1);
 			sumd = sumd - s[j-1] + s[j+ws-1];
-			
-			if(!iszero(sumd))
-				t = sumn / (double)sumd;
+			//cout << sumn << " " << sumd << endl;
+
 			//sumres[j] = sum;
 			if(sumd > max) {
 				max = sumd;
+				if(!iszero(sumd))
+					t = sumn / (double)sumd;
 				maxt = t;
 				maxj = j;
 			}
@@ -171,7 +180,7 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		
 #ifdef PRINTALG
 		//>9000
-		if(flag == 0) cout << pixel << " " << maxj << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
+		if(flag == 0) cout << pixel << " " << maxt << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
 #endif
 		/*
 		for(int k=0; k<nsamples; k++)
@@ -301,6 +310,8 @@ int main(int argc, char *argv[])
 			cout << "Test 9: access to some structural information form source data field (packetlib)" << endl;
 		if(test == 10)
 			cout << "Test 10: access to some values from source data field (packetlib)" << endl;
+		if(test == 11)
+			cout << "Test 11: JJ test" << endl;
 		
 		bool activatememorycopy = atoi(argv[3]);
 		if(activatememorycopy)
@@ -372,9 +383,13 @@ int main(int argc, char *argv[])
 
 			int ntimes;
 			
+			if(test == 11) {
+				ntimes = 1;
+				cout << "Start Test 11 ... " << ntimes << " runs " << endl;
+			}
 			if(test == 10) {
 				ntimes = 10;
-				cout << "Start Test 9 ... " << ntimes << " runs " << endl;
+				cout << "Start Test 10 ... " << ntimes << " runs " << endl;
 			}
 			if(test == 9) {
 				ntimes = 10;
@@ -401,7 +416,7 @@ int main(int argc, char *argv[])
 				cout << "Start Test 4 ... "  << ntimes << " runs " << endl;
 			}
 			if(test == 3) {
-				ntimes = 500;
+				ntimes = 2;
 				cout << "Start Test 3 ... " << ntimes << " runs " << endl;
 			}
 			if(test == 2) {
@@ -642,6 +657,19 @@ int main(int argc, char *argv[])
 							*/
 							break;
 						}
+						case 11:
+						{
+							int foo [] = { 16, 2, 77, 40, 12071 };
+							//byte* pixelJJ = new byte[64];
+							word pixelJJ [] = {15,23,36,48,58,60,49,33,22,10,5,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+							calcWaveformExtraction1((byte*)pixelJJ, 1, 64, 9);
+							/*
+							 for(int pixel=0; pixel<npixels; pixel++)
+							 for(int sample=0; sample < nsamples; sample++)
+							 trtel.getSampleValue(pixel, sample);
+							 */
+							break;
+						}
 					}
 				}
 
@@ -674,6 +702,8 @@ int main(int argc, char *argv[])
 			if(test == 9)
 				end(ntimes);
 			if(test == 10)
+				end(ntimes);
+			if(test == 11)
 				end(ntimes);
 			
 		} catch(PacketException* e) {
