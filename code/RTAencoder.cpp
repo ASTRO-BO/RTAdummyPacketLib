@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
                 }
 
                 //and finally, write the packet to output (in this example, write the output to file)
-                stream.writePacket(trtel->getInputPacketData());
+                stream.writePacket(trtel);
 				ssc++;
 				counts++;
 
