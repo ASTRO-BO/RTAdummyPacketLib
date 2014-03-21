@@ -24,11 +24,13 @@ LINKERENV= root
 
 #SYSTEM: linux or QNX
 SYSTEM= $(shell gcc -dumpmachine)
-PROJECT= RTAdummyPacketLib
+PROJECT= RTAtelemDemo
 EXE_NAME1 = RTAdecoder
 EXE_NAME2 = RTAencoder
-EXE_NAME3 = RTAtest1
-EXE_NAME4 = RTAtest2alg
+EXE_NAME3 = RTAencoderRoot
+EXE_NAME4 = RTAtest1
+EXE_NAME5 = RTAtest2alg
+EXE_NAME6 = RTAConfigLoader
 LIB_NAME = 
 VER_FILE_NAME = version.h
 #the name of the directory where the conf file are copied (into $(datadir))
@@ -81,7 +83,7 @@ endif
 #Use CPPFLAGS for the preprocessor
 CPPFLAGS =  -m64 
 #Set LIBS for addition library
-LIBS = $(INCPATH) -lstdc++ -lRTAtelem  -lpacket 
+LIBS = $(INCPATH) -lstdc++ -lRTAtelem -lRTAConfig -lpacket -lQLBase 
 
 ifeq ($(SYSTEM), QNX)
 	LIBS += -lsocket
@@ -172,7 +174,9 @@ exe: makeobjdir $(OBJECTS)
 		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME1) $(OBJECTS_DIR)/$(EXE_NAME1).o $(LIBS)
 		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME2) $(OBJECTS_DIR)/$(EXE_NAME2).o $(LIBS)
 		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME3) $(OBJECTS_DIR)/$(EXE_NAME3).o $(LIBS)
-	#	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME4) $(OBJECTS_DIR)/$(EXE_NAME4).o $(LIBS)
+		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME4) $(OBJECTS_DIR)/$(EXE_NAME4).o $(LIBS)
+	#	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME5) $(OBJECTS_DIR)/$(EXE_NAME5).o $(LIBS)
+		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME6) $(OBJECTS_DIR)/$(EXE_NAME6).o $(LIBS)
 
 staticlib: makelibdir makeobjdir $(OBJECTS)	
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	
@@ -206,6 +210,8 @@ clean:
 	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME1)	
 	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME2)	
 	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME3)
+	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME4)
+	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME6)
 	$(DEL_FILE) version
 	$(DEL_FILE) prefix
 	$(DEL_FILE) $(PROJECT).dvi
@@ -240,7 +246,7 @@ install: all
 	
 	# For exe installation
 	test -d $(bindir) || mkdir -p $(bindir)	
-	$(COPY_FILE) $(EXE_DESTDIR)/$(EXE_NAME1) $(EXE_DESTDIR)/$(EXE_NAME2) $(EXE_DESTDIR)/$(EXE_NAME3) $(bindir)
+	$(COPY_FILE) $(EXE_DESTDIR)/$(EXE_NAME1) $(EXE_DESTDIR)/$(EXE_NAME2) $(EXE_DESTDIR)/$(EXE_NAME3) $(EXE_DESTDIR)/$(EXE_NAME4) $(EXE_DESTDIR)/$(EXE_NAME6) $(bindir)
 	#copy icon
 	#test -d $(icondir) || mkdir -p $(icondir)
 	#$(COPY_FILE) $(ICON_DIR)/$(ICON_NAME) $(icondir)
@@ -263,6 +269,8 @@ uninstall:
 	$(DEL_FILE) $(bindir)/$(EXE_NAME1)
 	$(DEL_FILE) $(bindir)/$(EXE_NAME2)
 	$(DEL_FILE) $(bindir)/$(EXE_NAME3)
+	$(DEL_FILE) $(bindir)/$(EXE_NAME4)
+	$(DEL_FILE) $(bindir)/$(EXE_NAME6)
 	#$(DEL_FILE) $(icondir)/$(ICON_NAME)
 	
 #dist: create a distribution tar file for this program
