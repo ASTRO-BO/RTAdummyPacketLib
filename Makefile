@@ -20,6 +20,7 @@
 SHELL = /bin/sh
 
 ####### 1) Project names and system
+LINKERENV= root
 
 #SYSTEM: linux or QNX
 SYSTEM= $(shell gcc -dumpmachine)
@@ -81,11 +82,22 @@ endif
 CPPFLAGS =  -m64 
 #Set LIBS for addition library
 LIBS = $(INCPATH) -lstdc++ -lRTAtelem  -lpacket 
+
 ifeq ($(SYSTEM), QNX)
 	LIBS += -lsocket
 endif
+
 ifneq (, $(findstring linux, $(SYSTEM)))
         LIBS += -lrt
+endif
+
+ifneq (, $(findstring root, $(LINKERENV)))
+        ROOTCFLAGS   := $(shell root-config --cflags)
+        ROOTLIBS     := $(shell root-config --libs)
+        ROOTGLIBS    := $(shell root-config --glibs)
+        ROOTCONF=-O -pipe -Wall -W -fPIC -D_REENTRANT
+        LIBS += $(ROOTGLIBS) -lMinuit
+        ALL_CFLAGS += $(ROOTCONF)
 endif
 
 LINK     = g++
