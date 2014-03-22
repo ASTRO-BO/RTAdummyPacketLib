@@ -22,7 +22,7 @@
 #include <config.h>
 #endif
 
-//#define PRINTALG 1
+#define PRINTALG 1
 
 #include <iostream>
 #include <stdlib.h>
@@ -452,7 +452,8 @@ int main(int argc, char *argv[])
 						npixels = trtel.getNumberOfPixels();
 						int pixel = 0;
 						nsamples = trtel.getNumberOfSamples(pixel);
-						cout << npixels << " " << nsamples << endl;
+						//trtel.getNumberOfTriggeredTelescopes();
+						cout << npixels << " " << nsamples << " " << endl;
 						//npixels = 1141; nsamples = 40;
 					}
 					switch(test) {

@@ -20,7 +20,7 @@
 SHELL = /bin/sh
 
 ####### 1) Project names and system
-LINKERENV= root
+LINKERENV= root, cfitsio
 
 #SYSTEM: linux or QNX
 SYSTEM= $(shell gcc -dumpmachine)
@@ -91,6 +91,10 @@ endif
 
 ifneq (, $(findstring linux, $(SYSTEM)))
         LIBS += -lrt
+endif
+
+ifneq (, $(findstring cfitsio, $(LINKERENV)))
+	LIBS += -lcfitsio
 endif
 
 ifneq (, $(findstring root, $(LINKERENV)))
@@ -173,10 +177,10 @@ exe: makeobjdir $(OBJECTS)
 		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME1) $(OBJECTS_DIR)/$(EXE_NAME1).o $(LIBS)
 		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME2) $(OBJECTS_DIR)/$(EXE_NAME2).o $(LIBS)
-		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME3) $(OBJECTS_DIR)/$(EXE_NAME3).o $(LIBS)
 		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME4) $(OBJECTS_DIR)/$(EXE_NAME4).o $(LIBS)
+		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME3) $(OBJECTS_DIR)/$(EXE_NAME3).o $(LIBS)
 	#	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME5) $(OBJECTS_DIR)/$(EXE_NAME5).o $(LIBS)
-		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME6) $(OBJECTS_DIR)/$(EXE_NAME6).o $(LIBS)
+	#	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME6) $(OBJECTS_DIR)/$(EXE_NAME6).o $(LIBS)
 
 staticlib: makelibdir makeobjdir $(OBJECTS)	
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	

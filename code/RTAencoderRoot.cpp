@@ -31,8 +31,8 @@
 #include <math.h>
 
 // ROOT library
-#include "TFile.h"
-#include "TTree.h"
+#include <TFile.h>
+#include <TTree.h>
 
 using namespace std;
 
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
         /// One packet for each triggered telescope
         RTATelem::CTAStream stream = RTATelem::CTAStream(ctarta + "/share/rtatelem/rta_fadc1.stream", "", argv[2]);
         RTATelem::CTACameraTriggerData1* trtel = (RTATelem::CTACameraTriggerData1*) stream.getNewPacket(RTATelem::CTA_CAMERA_TRIGGERDATA_1);
-		RTAConfig::RTAConfigLoad ctaconf( ctarta + "/share/PROD2_telconfig.fits.gz" );  
+		RTAConfig::RTAConfigLoad ctaconf( ctarta + "/share/rtatelem/PROD2_telconfig.fits.gz" );
 
 
         /// METADATA
@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 		
 		word ssc = 0;
         for(int evtindex = 0; evtindex<numberOfEvent; evtindex++) {
-            cout << evtindex << endl;
+            cout << "--" << evtindex << endl;
             /// Get entry from the tree
             dst_tree->GetEntry(evtindex);
                 
@@ -154,6 +154,8 @@ int main(int argc, char *argv[])
                 // The attribute stores the number of pixels
                 word npixels =  (*camTypeStruct).NPixel;
                 word nsamples = numSamples[telindex];
+				
+				cout << TelescopeId << " " << telType << " " << npixels << " " << nsamples << endl;
                 
                 //set the header of the tm packet
                 trtel->header->setAPID(TelescopeId); 	//the data generator (for now, the telescope)
@@ -165,7 +167,7 @@ int main(int argc, char *argv[])
                    }
                 }
                 
-                trtel->header->setSSC(SSC_array[SSC_index]);	//a unique counter of packets
+                trtel->header->setSSC(ssc=	SSC_array[SSC_index]);	//a unique counter of packets
                 cout << "ssc " << ssc << endl;
                 
                 trtel->header->setMetadata(1, 2);	//the metadata
