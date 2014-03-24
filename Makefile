@@ -83,7 +83,7 @@ endif
 #Use CPPFLAGS for the preprocessor
 CPPFLAGS =  -m64 
 #Set LIBS for addition library
-LIBS = $(INCPATH) -lstdc++ -lRTAtelem -lRTAConfig -lpacket -lQLBase 
+LIBS = $(INCPATH) -lstdc++ -lRTAtelem -lRTAconfig -lpacket -lQLBase 
 
 ifeq ($(SYSTEM), QNX)
 	LIBS += -lsocket
