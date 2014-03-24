@@ -22,7 +22,7 @@
 #include <config.h>
 #endif
 
-#define PRINTALG 1
+//#define PRINTALG 1
 
 #include <iostream>
 #include <stdlib.h>
@@ -92,8 +92,10 @@ void printBuffer(word* c, int npixels, int nsamples) {
 }
 
 int flag = 0;
+//unsigned short maxres[3000];
+//double timeres[3000];
 
-void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
+void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws, unsigned short * maxresext, double * timeresext) {
 	word *b = (word*) buffer; //should be pedestal subtractred
 	//printBuffer(b, npixels, nsamples);
 
@@ -106,8 +108,11 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 	double* time = &timev[0];
 	*/
 	
-	int* maxres = new int[npixels];
-	double* time = new double[npixels];
+	unsigned short* maxres = new unsigned short[npixels];
+	double* timeres = new double[npixels];
+	//maxresext = maxres;
+	//timeresext = time;
+	
 	
 	//word bl[npixels*nsamples];
 	//memcpy(bl, b, npixels*nsamples*sizeof(word));
@@ -125,7 +130,7 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		}
 #endif
 		
-		long max = 0;
+		unsigned short max = 0;
 		double maxt = 0;
 		long sumn = 0;
 		long sumd = 0;
@@ -175,8 +180,9 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 		//maxres.push_back(max);
 		//time.push_back(maxt);
 		
+		
 		maxres[pixel] = max;
-		time[pixel] = maxt;
+		timeres[pixel] = maxt;
 		
 #ifdef PRINTALG
 		//>9000
@@ -191,6 +197,11 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws ) {
 	//SharedPtr<double> shtime(maxt);
 	
 	flag++;
+	//return maxres;
+	//maxresext = maxres;
+	//timeresext = timeres;
+	memcpy(maxresext, maxres, sizeof(unsigned short) * npixels);
+	//memcpy(timeresext, timeres, sizeof(double) * npixels);
 }
 
 void calcWaveformExtraction3(byte* buffer, int npixels, int nsamples, int ws) {
@@ -447,24 +458,27 @@ int main(int argc, char *argv[])
 
 					RTATelem::CTACameraTriggerData1& trtel = (RTATelem::CTACameraTriggerData1&) packet;
 
-					if(npacketsread2 == 0) {
-						trtel.decode(true);
-						npixels = trtel.getNumberOfPixels();
-						int pixel = 0;
-						nsamples = trtel.getNumberOfSamples(pixel);
+					
+					//if(npacketsread2 == 0) {
+						//trtel.decode(true);
+						//npixels = trtel.getNumberOfPixels();
+						//int pixel = 0;
+						//nsamples = trtel.getNumberOfSamples(0);
 						//trtel.getNumberOfTriggeredTelescopes();
-						cout << npixels << " " << nsamples << " " << endl;
+						//cout << trtel.getTelescopeId() << " " << npixels << " " << nsamples << " " << endl;
 						//npixels = 1141; nsamples = 40;
-					}
+					//}
 					switch(test) {
 						case 3:
 						{
 							//access to a pointer of the camera data (all pixels) as a single block
 							trtel.decode(true);
-
+							npixels = trtel.getNumberOfPixels();
+							nsamples = trtel.getNumberOfSamples(0);
+							
 							//word subtype = trtel.header->getSubType();
 							ByteStreamPtr camera = trtel.getCameraDataSlow();
-							//cout << rawPacket->size() << " " << camera->size() << endl;
+							//cout << camera->size() << endl;
 //							word *c = (word*) camera->stream;
 							if(activatememorycopy) {
 								memcpy(buffermemory, camera->stream, camera->size());
@@ -475,10 +489,14 @@ int main(int argc, char *argv[])
 								//int pixel = 0;
 								//word nsamples = trtel.getNumberOfSamples(pixel);
 								//cout << npixels << " " << nsamples << endl;
+								unsigned short * maxres = new unsigned short[npixels];
+								double* timeres = new double[npixels];
 								if(activatememorycopy)
-									calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
+									calcWaveformExtraction1(buffermemory, npixels, nsamples, 6, maxres, timeres);
 								else
-									calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
+									calcWaveformExtraction1(camera->stream, npixels, nsamples, 6, maxres, timeres);
+								delete[] maxres;
+								delete[] timeres;
 							}
 
 							break;
@@ -488,6 +506,9 @@ int main(int argc, char *argv[])
 						{
 							//packetlib access to an array of samples using packetlib to get the block
 							trtel.decode(true);
+							npixels = trtel.getNumberOfPixels();
+							nsamples = trtel.getNumberOfSamples(0);
+							
 							int pixel = 0;
 							for(int i=0; i<nsamples; i++) {
 								word sample = trtel.getSampleValue(pixel, i);
@@ -516,6 +537,9 @@ int main(int argc, char *argv[])
 						{
 							//direct acces to an array of samples using packetlib to get the block
 							trtel.decode(true);
+							npixels = trtel.getNumberOfPixels();
+							nsamples = trtel.getNumberOfSamples(0);
+							
 							int pixel = 0;
 							ByteStreamPtr samplebs = trtel.getPixelData(pixel);
 							word* sample = (word*) samplebs->stream;
@@ -549,6 +573,8 @@ int main(int argc, char *argv[])
 						{
 							//access to header and data field header with packetlib
 							trtel.decode(true);
+							npixels = trtel.getNumberOfPixels();
+							nsamples = trtel.getNumberOfSamples(0);
 
 							word arrayID;
 							word runNumberID;
@@ -589,10 +615,14 @@ int main(int argc, char *argv[])
 								memcpy(buffermemory, camera->stream, camera->size());
 							}
 							if(calcalg) {
+								unsigned short * maxres = new unsigned short[npixels];
+								double* timeres = new double[npixels];
 								if(activatememorycopy)
-									calcWaveformExtraction1(buffermemory, npixels, nsamples, 6);
+									calcWaveformExtraction1(buffermemory, npixels, nsamples, 6, maxres, timeres);
 								else
-									calcWaveformExtraction1(camera->stream, npixels, nsamples, 6);
+									calcWaveformExtraction1(camera->stream, npixels, nsamples, 6, maxres, timeres);
+								delete[] maxres;
+								delete[] timeres;
 							}
 							//cout << "value of first sample " << c[0] << endl;
 							break;
@@ -601,6 +631,8 @@ int main(int argc, char *argv[])
 						{
 							//access to header, data field header and source data field (header)
 							trtel.decode(true);
+							npixels = trtel.getNumberOfPixels();
+							nsamples = trtel.getNumberOfSamples(0);
 							
 							word arrayID;
 							word runNumberID;
@@ -637,6 +669,9 @@ int main(int argc, char *argv[])
 						{
 							//access to some structural information form source data field (packetlib)
 							trtel.decode(true);
+							npixels = trtel.getNumberOfPixels();
+							nsamples = trtel.getNumberOfSamples(0);
+							
 							word npixels = trtel.getNumberOfPixels();
 							int pixel=0;
 							word nsamples = trtel.getNumberOfSamples(pixel);
@@ -650,6 +685,9 @@ int main(int argc, char *argv[])
 						{
 							//access to some values form source data field (packetlib)
 							trtel.decode(true);
+							npixels = trtel.getNumberOfPixels();
+							nsamples = trtel.getNumberOfSamples(0);
+							
 							trtel.getSampleValue(0, 0);
 							/*
 							for(int pixel=0; pixel<npixels; pixel++)
@@ -663,7 +701,11 @@ int main(int argc, char *argv[])
 							int foo [] = { 16, 2, 77, 40, 12071 };
 							//byte* pixelJJ = new byte[64];
 							word pixelJJ [] = {15,23,36,48,58,60,49,33,22,10,5,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-							calcWaveformExtraction1((byte*)pixelJJ, 1, 64, 9);
+							unsigned short * maxres = new unsigned short[npixels];
+							double* timeres = new double[npixels];
+							calcWaveformExtraction1((byte*)pixelJJ, 1, 64, 9, maxres, timeres);
+							delete[] maxres;
+							delete[] timeres;
 							/*
 							 for(int pixel=0; pixel<npixels; pixel++)
 							 for(int sample=0; sample < nsamples; sample++)

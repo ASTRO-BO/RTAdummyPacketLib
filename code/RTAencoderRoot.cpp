@@ -177,6 +177,7 @@ int main(int argc, char *argv[])
 				
                 //event information
                 trtel->setEventNumber(eventNumber);	//another metadata: the event number (e.g. provided by event builder)
+				cout << eventNumber << endl;
                 trtel->setNumberOfTriggeredTelescopes(numberOfTriggeredTelescopes);	//the number of triggere telescopes (provided by the event builder)
                 trtel->setIndexOfCurrentTriggeredTelescope(telindex);	//an internal index of the telescope within the event. This should be used
                                         //to check data loss
@@ -195,14 +196,14 @@ int main(int argc, char *argv[])
                 for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
                     //trtel->setPixelId(pixelindex, pixelindex);
                     trtel->setNumberOfSamples(pixelindex, nsamples);
-					if(counts == 0) cout << pixelindex << " ";
+					//if(counts == 0) cout << pixelindex << " ";
                     for(int sampleindex=0; sampleindex<nsamples; sampleindex++) {
                     	int val = (int)(rand() % 255);
                     	//int val = Trace[telindex][sampleindex][pixelindex];
                         trtel->setSampleValue(pixelindex, sampleindex, val);
-						if(counts == 0) cout << val << " ";
+						//if(counts == 0) cout << val << " ";
                     }
-					if(counts == 0) cout << endl;
+					//if(counts == 0) cout << endl;
                 }
 
                 //and finally, write the packet to output (in this example, write the output to file)

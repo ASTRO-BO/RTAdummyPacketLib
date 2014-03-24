@@ -72,7 +72,7 @@ ICON_DIR = ui
 
 CXX      = g++
 #Insert the optional parameter to the compiler. The CFLAGS could be changed externally by the user
-CFLAGS   = -g -std="c++0x" -O2 
+CFLAGS   = -g -std="c++0x" -O3 
 #Set INCPATH to add the inclusion paths
 INCPATH = -I ./include  -I $(CTARTA)/include -I$(CTARTA)/include/packet -L$(CTARTA)/lib
 #Insert the implicit parameter to the compiler:
@@ -101,7 +101,7 @@ ifneq (, $(findstring root, $(LINKERENV)))
         ROOTCFLAGS   := $(shell root-config --cflags)
         ROOTLIBS     := $(shell root-config --libs)
         ROOTGLIBS    := $(shell root-config --glibs)
-        ROOTCONF=-O -pipe -Wall -W -fPIC -D_REENTRANT
+        ROOTCONF=-O3 -pipe -Wall -W -fPIC -D_REENTRANT
         LIBS += $(ROOTGLIBS) -lMinuit
         ALL_CFLAGS += $(ROOTCONF)
 endif
