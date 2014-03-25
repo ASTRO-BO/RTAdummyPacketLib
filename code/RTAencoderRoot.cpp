@@ -98,7 +98,9 @@ int main(int argc, char *argv[])
 	    Float_t         LTtime[35];
 	    UInt_t          eventNumber;
         UShort_t        numSamples[35];	    
-	    UShort_t        Trace[35][500][2900];
+	    //UShort_t        Trace[35][500][2900];
+	    UShort_t        *Trace = new UShort_t[35*500*2900];
+	    
 	    
 	    /// List of branches
 	    TBranch        *b_ntel_data;
@@ -120,7 +122,7 @@ int main(int argc, char *argv[])
  	    dst_tree->SetBranchAddress("LTtime", LTtime, &b_LTtime);
 	    dst_tree->SetBranchAddress("eventNumber", &eventNumber, &b_eventNumber); 	    
 	    dst_tree->SetBranchAddress("numSamples", numSamples, &b_numSamples);
-	    //dst_tree->SetBranchAddress("Trace", Trace, &b_Trace);
+	    dst_tree->SetBranchAddress("Trace", Trace, &b_Trace);
 	     	    
         ///Number of events
         //int numberOfEvent = dst_tree->GetEntriesFast();
@@ -142,6 +144,9 @@ int main(int argc, char *argv[])
             /// The attribute stores the number of triggered telescopes for each event                
             int numberOfTriggeredTelescopes = ntel_data;
             cout << numberOfTriggeredTelescopes << endl;
+            
+            int el_id = 0;
+            int tot_slice_pix = 0;
             //for each triggere telescope, generate a telemetry packet
             for(int telindex = 0; telindex<numberOfTriggeredTelescopes; telindex++) {
 				
@@ -193,74 +198,22 @@ int main(int argc, char *argv[])
 				trtel->setNumberOfPixelsID(0);
 
                 //set information of the pixels and sample
-                for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
-                    //trtel->setPixelId(pixelindex, pixelindex);
-                    trtel->setNumberOfSamples(pixelindex, nsamples);
-					//if(counts == 0) cout << pixelindex << " ";
-                    for(int sampleindex=0; sampleindex<nsamples; sampleindex++) {
-                    	int val = (int)(rand() % 255);
-                    	//int val = Trace[telindex][sampleindex][pixelindex];
+                for(int sampleindex=0; sampleindex<nsamples; sampleindex++) {
+                    for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
+                        trtel->setNumberOfSamples(pixelindex, nsamples);
+                        el_id = tot_slice_pix + sampleindex*2900 + pixelindex;
+                    	//int val = (int)(rand() % 255);
+                    	int val = Trace[el_id];
                         trtel->setSampleValue(pixelindex, sampleindex, val);
-						//if(counts == 0) cout << val << " ";
                     }
-					//if(counts == 0) cout << endl;
                 }
-
+                tot_slice_pix = tot_slice_pix + 500*2900;
+                
                 //and finally, write the packet to output (in this example, write the output to file)
                 stream.writePacket(trtel);
-				//ssc++;
                 SSC_array[SSC_index] = SSC_array[SSC_index] + 1;
 				counts++;
 
-                //just for check, write the content of the packet to stdout
-                //if(evtindex == 0) trtel->printPacket_output();
-                
-/*
-                //set the header of the tm packet
-                //trtel->header->setAPID(telindex); 	//the data generator (for now, the telescope)
-                //trtel->header->setSSC(ssc);	//a unique counter of packets
-                //trtel->header->setMetadata(1, 2);	//the metadata
-                //trtel->header->setTime(1500+ssc);	//the time
-                //word nsamples = 40;
-                //trtel->header->setSubType(nsamples); //important, for fast packet identification
-				
-                //event information
-                //int evnum = 10;
-                //trtel->setEventNumber(evnum);	//another metadata: the event number (e.g. provided by event builder)
-                //trtel->setNumberOfTriggeredTelescopes(numberOfTriggeredTelescopes);	//the number of triggere telescopes (provided by the event builder)
-                //trtel->setIndexOfCurrentTriggeredTelescope(telindex);	//an internal index of the telescope within the event. This should be used
-                                        //to check data loss
-                //trtel->setTelescopeId(telindex*10+5);	//the telescope that has triggered	
-
-                //camera information
-                
-                //set the number of pixels and samples. In this way it is possible to manage different cameras with the same layout
-                // The attribute stores the number of pixels
-                //word npixels = 1141;
-                // The attribute stores the number of samples
-
-                trtel->setNumberOfPixels(npixels);
-				cout << "ssc " << ssc << endl;
-				trtel->setNumberOfPixelsID(0);
-
-                //set information of the pixels and sample
-                for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
-                    //trtel->setPixelId(pixelindex, pixelindex);
-                    trtel->setNumberOfSamples(pixelindex, nsamples);
-					if(counts == 0) cout << pixelindex << " ";
-                    for(int sampleindex=0; sampleindex<nsamples; sampleindex++) {
-                    	int val = (int)(rand() % 255);
-                        trtel->setSampleValue(pixelindex, sampleindex, val);
-						if(counts == 0) cout << val << " ";
-                    }
-					if(counts == 0) cout << endl;
-                }
-
-                //and finally, write the packet to output (in this example, write the output to file)
-                stream.writePacket(trtel);
-				ssc++;
-				counts++;
-*/
             }		
 
         }
@@ -268,6 +221,8 @@ int main(int argc, char *argv[])
         t = clock() - t;
         //printf ("It took me %d clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
         cout << "END " << counts << endl;
+        
+        delete Trace;
         return 0;
 
     }
