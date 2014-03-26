@@ -130,11 +130,12 @@ int main(int argc, char *argv[])
 			cout << "Camera N Pixels: " << (*camTypeStruct).NPixel << endl;
 			cout << "Camera N Pixels active: " << (*camTypeStruct).NPixel_active << endl;
 			cout << "Camera Pixel type: " << (*camTypeStruct).fromCameratoPixType.pixType << endl;
-			struct RTAConfig::RTAConfigLoad::PixelType *pixTypeStruct = ctaconf.getPixelTypeStruct((*camTypeStruct).fromCameratoPixType.pixType);
-			cout << "Pixel ID for pixel 0: " << (*camTypeStruct).fromCameratoPixel[0].PixelID << endl;
-			cout << "XTubeMM for pixel 0: " << (*camTypeStruct).fromCameratoPixel[0].XTubeMM << endl;
-			cout << "YTubeMM for pixel 0: " << (*camTypeStruct).fromCameratoPixel[0].YTubeMM << endl;
-			cout << "RTubeMM for pixel 0: " << (*camTypeStruct).fromCameratoPixel[0].RTubeMM << endl;
+			struct RTAConfig::RTAConfigLoad::Pixel *pixStruct = ctaconf.getPixelStruct((*camTypeStruct).camType, 100);
+			cout << "Pixel ID for pixel 0: " << (*pixStruct).PixelID << endl;
+			cout << "XTubeMM for pixel 0: " << (*pixStruct).XTubeMM << endl;
+			cout << "YTubeMM for pixel 0: " << (*pixStruct).YTubeMM << endl;
+			cout << "RTubeMM for pixel 0: " << (*pixStruct).RTubeMM << endl;
+			cout << "RTubeDeg for pixel 0: " << (*pixStruct).RTubeDeg << endl;
 			cout << "------------------------------------" << endl;
 		
 			word nPixels = trtel.getNumberOfPixels();
