@@ -31,6 +31,7 @@ EXE_NAME3 = RTAencoderRoot
 EXE_NAME4 = RTAtest1
 EXE_NAME5 = RTAtest2alg
 EXE_NAME6 = RTAConfigLoader
+EXE_NAME7 = RTAcameraDraw
 LIB_NAME = 
 VER_FILE_NAME = version.h
 #the name of the directory where the conf file are copied (into $(datadir))
@@ -181,6 +182,7 @@ exe: makeobjdir $(OBJECTS)
 		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME3) $(OBJECTS_DIR)/$(EXE_NAME3).o $(LIBS)
 	#	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME5) $(OBJECTS_DIR)/$(EXE_NAME5).o $(LIBS)
 		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME6) $(OBJECTS_DIR)/$(EXE_NAME6).o $(LIBS)
+		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME7) $(OBJECTS_DIR)/$(EXE_NAME7).o $(LIBS)
 
 staticlib: makelibdir makeobjdir $(OBJECTS)	
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	

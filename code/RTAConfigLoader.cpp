@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
 		RTATelem::CTAStream stream(ctarta + "/share/rtatelem/rta_fadc1.stream", argv[1], "");
 		RTATelem::CTADecoder decoder(ctarta + "/share/rtatelem/rta_fadc1.stream");
-		RTAConfig::RTAConfigLoad ctaconf( ctarta + "/share/PROD2_telconfig.fits.gz" );  
+		RTAConfig::RTAConfigLoad ctaconf( ctarta + "/share/rtatelem/PROD2_telconfig.fits.gz" );  
         
 		///Read a telemetry packet from .raw file. Return 0 if end of file
   
