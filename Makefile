@@ -98,12 +98,12 @@ ifneq (, $(findstring cfitsio, $(LINKERENV)))
 endif
 
 ifneq (, $(findstring root, $(LINKERENV)))
-        ROOTCFLAGS   := $(shell root-config --cflags)
-        ROOTLIBS     := $(shell root-config --libs)
-        ROOTGLIBS    := $(shell root-config --glibs)
-        ROOTCONF=-O3 -pipe -Wall -W -fPIC -D_REENTRANT
-        LIBS += $(ROOTGLIBS) -lMinuit
-        ALL_CFLAGS += $(ROOTCONF)
+        ROOTCFLAGS=`${SHELL} root-config --cflags`
+        ROOTLIBS=`${SHELL} root-config --libs`
+        ROOTGLIBS=`${root-config --glibs}`
+        ROOTCONF=-pipe -Wall -W -fPIC -D_REENTRANT
+        LIBS+=$(ROOTLIBS) $(ROOTGLIBS) -lMinuit
+        ALL_CFLAGS+=$(ROOTCONF) $(ROOTCFLAGS)
 endif
 
 LINK     = g++
