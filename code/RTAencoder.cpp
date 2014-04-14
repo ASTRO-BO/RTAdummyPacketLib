@@ -69,12 +69,12 @@ int main(int argc, char *argv[])
 				
 
                 //set the header of the tm packet
-                trtel->header->setAPID(telindex); 	//the data generator (for now, the telescope)
-                trtel->header->setSSC(ssc);	//a unique counter of packets
-                trtel->header->setMetadata(1, 2);	//the metadata
-                trtel->header->setTime(1500+ssc);	//the time
+                trtel->header.setAPID(telindex); 	//the data generator (for now, the telescope)
+                trtel->header.setSSC(ssc);	//a unique counter of packets
+                trtel->header.setMetadata(1, 2);	//the metadata
+                trtel->header.setTime(1500+ssc);	//the time
                 word nsamples = 40;
-                trtel->header->setSubType(nsamples); //important, for fast packet identification
+                trtel->header.setSubType(nsamples); //important, for fast packet identification
 				
                 //event information
                 int evnum = 10;

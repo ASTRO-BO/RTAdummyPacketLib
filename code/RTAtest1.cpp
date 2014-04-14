@@ -476,7 +476,7 @@ int main(int argc, char *argv[])
 							npixels = trtel.getNumberOfPixels();
 							nsamples = trtel.getNumberOfSamples(0);
 							
-							//word subtype = trtel.header->getSubType();
+							//word subtype = trtel.header.getSubType();
 							ByteStreamPtr camera = trtel.getCameraDataSlow();
 							//cout << camera->size() << endl;
 //							word *c = (word*) camera->stream;
@@ -580,10 +580,10 @@ int main(int argc, char *argv[])
 							word runNumberID;
 							word ssc;
 
-							trtel.header->getMetadata(arrayID, runNumberID);
-							ssc = trtel.header->getSSC();
-							word subtype = trtel.header->getSubType();
-							double time = trtel.header->getTime();
+							trtel.header.getMetadata(arrayID, runNumberID);
+							ssc = trtel.header.getSSC();
+							word subtype = trtel.header.getSubType();
+							double time = trtel.header.getTime();
 #ifdef PRINTALG
 							cout << "ssc: " << ssc << endl;
 							cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
@@ -638,10 +638,10 @@ int main(int argc, char *argv[])
 							word runNumberID;
 							word ssc;
 							
-							trtel.header->getMetadata(arrayID, runNumberID);
-							ssc = trtel.header->getSSC();
-							word subtype = trtel.header->getSubType();
-							double time = trtel.header->getTime();
+							trtel.header.getMetadata(arrayID, runNumberID);
+							ssc = trtel.header.getSSC();
+							word subtype = trtel.header.getSubType();
+							double time = trtel.header.getTime();
 							
 							word ntt = trtel.getNumberOfTriggeredTelescopes();
 							word tt = trtel.getIndexOfCurrentTriggeredTelescope();
