@@ -1,3 +1,19 @@
+2014-04-24 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
+<bulgarelli@iasfbo.inaf.it>, Valentina Fioretti <fioretti@iasfbo.inaf.it>
+TAG v1.3.0
+Dependencies: PacketLib v4.0.2, RTAtelem v1.4.4
+* FADC bug solved.
+* Makefile with -lRTAconfig corrected.
+* Added calcWaveformExtraction1 results return (maxres, timeres).
+* ROOT/raw encoder added (FADC random values).
+* Makefile changes for root.
+* RTAConfigLoader for Metadata reading added.
+* RTAencoder use the new writePacket().
+* algorithm 1 corrections.
+* Add eclipse project files.
+* Add xcode project files.
+* Define CTAPacket, CTAStream, CTADecoder classes.
+
 2014-03-10 Andrea Bulgarelli <bulgarelli@iasfbo.inaf.it>
 TAG v1.2.1
 Dependencies: PacketLib v4.0.1, RTAtelem v1.4.1
