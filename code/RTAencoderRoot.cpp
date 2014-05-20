@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
 				cout << TelescopeId << " " << telType << " " << npixels << " " << nsamples << endl;
                 
                 //set the header of the tm packet
-                trtel->header->setAPID(TelescopeId); 	//the data generator (for now, the telescope)
+                trtel->header.setAPID(TelescopeId); 	//the data generator (for now, the telescope)
                 
                 for (int j = 0; j < vectorTelID.size(); j++){
                    if (TelescopeId == vectorTelID[j]){
@@ -172,13 +172,13 @@ int main(int argc, char *argv[])
                    }
                 }
                 
-                trtel->header->setSSC(ssc=	SSC_array[SSC_index]);	//a unique counter of packets
+                trtel->header.setSSC(ssc=	SSC_array[SSC_index]);	//a unique counter of packets
                 cout << "ssc " << ssc << endl;
                 
-                trtel->header->setMetadata(1, 2);	//the metadata
-                trtel->header->setTime(LTtime[telindex]);	//the time
+                trtel->header.setMetadata(1, 2);	//the metadata
+                trtel->header.setTime(LTtime[telindex]);	//the time
                 
-                trtel->header->setSubType(nsamples); //important, for fast packet identification
+                trtel->header.setSubType(nsamples); //important, for fast packet identification
 				
                 //event information
                 trtel->setEventNumber(eventNumber);	//another metadata: the event number (e.g. provided by event builder)

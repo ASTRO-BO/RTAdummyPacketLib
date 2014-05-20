@@ -186,7 +186,7 @@ void calcWaveformExtraction1(byte* buffer, int npixels, int nsamples, int ws, un
 		
 #ifdef PRINTALG
 		//>9000
-		if(flag == 0) cout << pixel << " " << maxt << " " << maxres[pixel] << " " << time[pixel] << " " << endl;
+		if(flag == 0) cout << pixel << " " << maxt << " " << maxres[pixel] << " " << timeres[pixel] << " " << endl;
 #endif
 		/*
 		for(int k=0; k<nsamples; k++)
@@ -289,12 +289,20 @@ int main(int argc, char *argv[])
 		int test = 0;
 		
 		if(argc < 4) {
-			cout << "exe file.raw testID(0/7) memcpy(0/1)" << endl;
+			cout << "exe file.raw testID(0/7) memcpy(0/1) waveform(0/1)" << endl;
 			cout << "where test is:" << endl;
-			cout << "0: check data model loading" << endl;
-			cout << "1: load data into a circular buffer" << endl;
-			cout << "2: decoding for routing (identification of the type of packet)" << endl;
-			cout << "3: decoding all the blocks of the packet" << endl;
+			cout << "Test 0: check data model loading" << endl;
+			cout << "Test 1: check the loading of camera data packets" << endl;
+			cout << "Test 2: decoding for routing (identification of the type of packet)" << endl;
+			cout << "Test 3: access to a pointer of the camera data (all pixels) as a single block (method 1 packetlib)" << endl;
+			cout << "Test 4: packetlib access to an array of samples using packetlib to get the block" << endl;
+			cout << "Test 5: direct acces to an array of samples using packetlib to get the block" << endl;
+			cout << "Test 6: access to header and data field header with packetlib" << endl;
+			cout << "Test 7: decoding all the blocks of the packet (method 2 packetlib::bytestream builder)" << endl;
+			cout << "Test 8: access to header, data field header and source data field (header)" << endl;
+			cout << "Test 9: access to some structural information form source data field (packetlib)" << endl;
+			cout << "Test 10: access to some values from source data field (packetlib)" << endl;
+			cout << "Test 11: JJ test" << endl;
 			exit(0);
 		}
 		
@@ -399,7 +407,7 @@ int main(int argc, char *argv[])
 				cout << "Start Test 11 ... " << ntimes << " runs " << endl;
 			}
 			if(test == 10) {
-				ntimes = 10;
+				ntimes = 1;
 				cout << "Start Test 10 ... " << ntimes << " runs " << endl;
 			}
 			if(test == 9) {
@@ -423,7 +431,7 @@ int main(int argc, char *argv[])
 				cout << "Start Test 5 ... " << ntimes << " runs " << endl;
 			}
 			if(test == 4) {
-				ntimes = 50;
+				ntimes = 1;
 				cout << "Start Test 4 ... "  << ntimes << " runs " << endl;
 			}
 			if(test == 3) {
@@ -476,7 +484,7 @@ int main(int argc, char *argv[])
 							npixels = trtel.getNumberOfPixels();
 							nsamples = trtel.getNumberOfSamples(0);
 							
-							//word subtype = trtel.header->getSubType();
+							//word subtype = trtel.header.getSubType();
 							ByteStreamPtr camera = trtel.getCameraDataSlow();
 							//cout << camera->size() << endl;
 //							word *c = (word*) camera->stream;
@@ -508,6 +516,16 @@ int main(int argc, char *argv[])
 							trtel.decode(true);
 							npixels = trtel.getNumberOfPixels();
 							nsamples = trtel.getNumberOfSamples(0);
+							cout << npixels << " " << nsamples << " ";
+							//
+							
+							byte ntrigtel = trtel.getNumberOfTriggeredTelescopes();
+							
+							dword evtnum = trtel.getEventNumber();
+							
+							cout << (int) ntrigtel << " " << (int) evtnum << endl;
+							
+							
 							
 							int pixel = 0;
 							for(int i=0; i<nsamples; i++) {
@@ -580,10 +598,10 @@ int main(int argc, char *argv[])
 							word runNumberID;
 							word ssc;
 
-							trtel.header->getMetadata(arrayID, runNumberID);
-							ssc = trtel.header->getSSC();
-							word subtype = trtel.header->getSubType();
-							double time = trtel.header->getTime();
+							trtel.header.getMetadata(arrayID, runNumberID);
+							ssc = trtel.header.getSSC();
+							word subtype = trtel.header.getSubType();
+							double time = trtel.header.getTime();
 #ifdef PRINTALG
 							cout << "ssc: " << ssc << endl;
 							cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
@@ -638,10 +656,10 @@ int main(int argc, char *argv[])
 							word runNumberID;
 							word ssc;
 							
-							trtel.header->getMetadata(arrayID, runNumberID);
-							ssc = trtel.header->getSSC();
-							word subtype = trtel.header->getSubType();
-							double time = trtel.header->getTime();
+							trtel.header.getMetadata(arrayID, runNumberID);
+							ssc = trtel.header.getSSC();
+							word subtype = trtel.header.getSubType();
+							double time = trtel.header.getTime();
 							
 							word ntt = trtel.getNumberOfTriggeredTelescopes();
 							word tt = trtel.getIndexOfCurrentTriggeredTelescope();

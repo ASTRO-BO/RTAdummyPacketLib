@@ -99,12 +99,12 @@ ifneq (, $(findstring cfitsio, $(LINKERENV)))
 endif
 
 ifneq (, $(findstring root, $(LINKERENV)))
-        ROOTCFLAGS   := $(shell root-config --cflags)
-        ROOTLIBS     := $(shell root-config --libs)
-        ROOTGLIBS    := $(shell root-config --glibs)
-        ROOTCONF=-O3 -pipe -Wall -W -fPIC -D_REENTRANT
-        LIBS += $(ROOTGLIBS) -lMinuit
-        ALL_CFLAGS += $(ROOTCONF)
+        ROOTCFLAGS=`${SHELL} root-config --cflags`
+        ROOTLIBS=`${SHELL} root-config --libs`
+        ROOTGLIBS=`${root-config --glibs}`
+        ROOTCONF=-pipe -Wall -W -fPIC -D_REENTRANT
+        LIBS+=$(ROOTLIBS) $(ROOTGLIBS) -lMinuit
+        ALL_CFLAGS+=$(ROOTCONF) $(ROOTCFLAGS)
 endif
 
 LINK     = g++
@@ -173,16 +173,33 @@ all: exe
 		#$(SYMLINK) $(CONF_DIR) $(CONF_DEST_DIR)
 
 lib: staticlib 
-	
-exe: makeobjdir $(OBJECTS)
-		test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
-		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME1) $(OBJECTS_DIR)/$(EXE_NAME1).o $(LIBS)
-		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME2) $(OBJECTS_DIR)/$(EXE_NAME2).o $(LIBS)
-		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME4) $(OBJECTS_DIR)/$(EXE_NAME4).o $(LIBS)
-		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME3) $(OBJECTS_DIR)/$(EXE_NAME3).o $(LIBS)
-	#	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME5) $(OBJECTS_DIR)/$(EXE_NAME5).o $(LIBS)
-		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME6) $(OBJECTS_DIR)/$(EXE_NAME6).o $(LIBS)
-		$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME7) $(OBJECTS_DIR)/$(EXE_NAME7).o $(LIBS)
+
+exe: makeobjdir $(EXE_NAME1) $(EXE_NAME2) $(EXE_NAME3) $(EXE_NAME4) $(EXE_NAME6)
+
+$(EXE_NAME1): $(OBJECTS)
+	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME1) $(OBJECTS_DIR)/$(EXE_NAME1).o $(LIBS)
+
+$(EXE_NAME2): $(OBJECTS)
+	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME2) $(OBJECTS_DIR)/$(EXE_NAME2).o $(LIBS)
+
+$(EXE_NAME3): $(OBJECTS)
+	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME3) $(OBJECTS_DIR)/$(EXE_NAME3).o $(LIBS)
+
+$(EXE_NAME4): $(OBJECTS)
+	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME4) $(OBJECTS_DIR)/$(EXE_NAME4).o $(LIBS)
+
+#$(EXE_NAME5): $(OBJECTS)
+#	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+#	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME5) $(OBJECTS_DIR)/$(EXE_NAME5).o $(LIBS)
+
+$(EXE_NAME6): $(OBJECTS)
+	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME6) $(OBJECTS_DIR)/$(EXE_NAME6).o $(LIBS)
+
 
 staticlib: makelibdir makeobjdir $(OBJECTS)	
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	

@@ -84,19 +84,19 @@ int main(int argc, char *argv[])
 			trtel.decode(true);
 
 			//access the packet header information
-			cout << "APID: " << trtel.header->getAPID() << endl;
-			cout << "ssc: " << trtel.header->getSSC() << endl;
+			cout << "APID: " << trtel.header.getAPID() << endl;
+			cout << "ssc: " << trtel.header.getSSC() << endl;
 
 			//access the metadata information (array id, run id, event id)
 			word arrayID;
 			word runNumberID;
-			trtel.header->getMetadata(arrayID, runNumberID);
+			trtel.header.getMetadata(arrayID, runNumberID);
 			cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
-			cout << "subtype " << trtel.header->getSubType() << endl;
+			cout << "subtype " << trtel.header.getSubType() << endl;
 			cout << "eventNumber:" << trtel.getEventNumber() << endl;
 
 			//trigger time
-			cout << "Telescope Time " << trtel.header->getTime() << endl;
+			cout << "Telescope Time " << trtel.header.getTime() << endl;
 
 			//the number of telescopes that have triggered
 			cout << "Triggered telescopes: " << (long) trtel.getNumberOfTriggeredTelescopes() << endl;
