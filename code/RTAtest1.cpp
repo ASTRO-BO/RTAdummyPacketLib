@@ -22,7 +22,7 @@
 #include <config.h>
 #endif
 
-//#define PRINTALG 1
+#define PRINTALG 1
 
 #include <iostream>
 #include <stdlib.h>
@@ -461,6 +461,7 @@ int main(int argc, char *argv[])
 				totbytes += size;
 				
 				enum RTATelem::CTAPacketType type = packet.getPacketType();
+				
 				//cout << "Packet #" << npacketsread2 << " size: " << size << " byte. type: " << type << endl;
 				if(type == RTATelem::CTA_CAMERA_TRIGGERDATA_1) {
 
@@ -516,17 +517,23 @@ int main(int argc, char *argv[])
 							trtel.decode(true);
 							npixels = trtel.getNumberOfPixels();
 							nsamples = trtel.getNumberOfSamples(0);
+#ifdef PRINTALG
 							cout << npixels << " " << nsamples << " ";
+#endif
 							//
 							
 							byte ntrigtel = trtel.getNumberOfTriggeredTelescopes();
 							
 							dword evtnum = trtel.getEventNumber();
 							
+							
+							
+							Packet* p = trtel.getPacket();
+#ifdef PRINTALG
 							cout << (int) ntrigtel << " " << (int) evtnum << endl;
-							
-							
-							
+							cout << "packet size: " << p->size() << endl;
+							cout << "packet size2: " << p->getPacketHeader()->getFieldValue_32ui(6) << endl;
+#endif
 							int pixel = 0;
 							for(int i=0; i<nsamples; i++) {
 								word sample = trtel.getSampleValue(pixel, i);
