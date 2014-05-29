@@ -68,9 +68,9 @@ int main(int argc, char *argv[])
 
         /// The Packet containing the FADC value of each triggered telescope
         /// One packet for each triggered telescope
-        RTATelem::CTAStream stream = RTATelem::CTAStream(ctarta + "/share/rtatelem/rta_fadc1.stream", "", argv[2]);
+        RTATelem::CTAStream stream = RTATelem::CTAStream(ctarta + "/share/rtatelem/rta_fadc1.xml", "", argv[2]);
         RTATelem::CTACameraTriggerData1* trtel = (RTATelem::CTACameraTriggerData1*) stream.getNewPacket(RTATelem::CTA_CAMERA_TRIGGERDATA_1);
-		RTAConfig::RTAConfigLoad ctaconf( ctarta + "share/rtatelem/PROD2_telconfig.fits.gz" );
+		RTAConfig::RTAConfigLoad ctaconf( ctarta + "/share/rtatelem/PROD2_telconfig.fits.gz" );
 
 
         /// METADATA
