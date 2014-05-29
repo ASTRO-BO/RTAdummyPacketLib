@@ -1,5 +1,5 @@
 /***************************************************************************
-                          main.cpp  -  description
+                          RTAdecoder.cpp  -  description
                              -------------------
     copyright            : (C) 2013 Andrea Bulgarelli
                                2013 Andrea Zoli
@@ -8,7 +8,12 @@
                            zoli@iasfbo.inaf.it
                            fioretti@iasfbo.inaf.it
  ***************************************************************************/
-
+/***************************************************************************
+- Description:
+Decoding the raw binary packets.
+- Last modified:
+29/05/2014 (V. Fioretti)
+****************************************************************************/
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -57,8 +62,8 @@ int main(int argc, char *argv[])
         	return 0;
         }
 
-		RTATelem::CTAStream stream(ctarta + "/share/rtatelem/rta_fadc1.stream", argv[1], "");
-		RTATelem::CTADecoder decoder(ctarta + "/share/rtatelem/rta_fadc1.stream");
+		RTATelem::CTAStream stream(ctarta + "/share/rtatelem/rta_fadc1.xml", argv[1], "");
+		RTATelem::CTADecoder decoder(ctarta + "/share/rtatelem/rta_fadc1.xml");
 
         ///Read a telemetry packet from .raw file. Return 0 if end of file
         ByteStreamPtr bs = stream.readPacket();
@@ -111,9 +116,10 @@ int main(int argc, char *argv[])
 
 			//work with a single pixel of the telescope
 			word pixelIndex=0;
-
-			cout << "PixelId " << trtel.getPixelId(pixelIndex) << endl;
-			cout << "PixelId+1 " << trtel.getPixelId(pixelIndex+1) << endl;
+			
+			// PixelID removed because no longer exists in CTACameraTriggerData1
+			//cout << "PixelId " << trtel.getPixelId(pixelIndex) << endl;
+			//cout << "PixelId+1 " << trtel.getPixelId(pixelIndex+1) << endl;
 
 			word nsamples = trtel.getNumberOfSamples(pixelIndex);
 			cout << "Samples: " << nsamples << endl;
