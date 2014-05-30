@@ -1,5 +1,5 @@
 /***************************************************************************
-                          main.cpp  -  description
+                          RTAencoder.cpp  -  description
                              -------------------
     copyright            : (C) 2013 Andrea Bulgarelli
                                2013 Andrea Zoli
@@ -8,7 +8,12 @@
                            zoli@iasfbo.inaf.it
                            fioretti@iasfbo.inaf.it
  ***************************************************************************/
-
+/***************************************************************************
+- Description:
+Encoding into raw binary packets from a dummy CTA trigger event.
+- Last modified:
+29/05/2014 (V. Fioretti)
+****************************************************************************/
 /***************************************************************************
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -51,8 +56,8 @@ int main(int argc, char *argv[])
 
         /// The Packet containing the FADC value of each triggered telescope
         // One packet for each triggered telescope
-        RTATelem::CTAStream stream = RTATelem::CTAStream(ctarta + "/share/rtatelem/rta_fadc1.stream", "", "out_dummy_fadc.raw");
-        RTATelem::CTACameraTriggerData1* trtel = (RTATelem::CTACameraTriggerData1*) stream.getNewPacket(RTATelem::CTA_CAMERA_TRIGGERDATA_1);
+        RTATelem::CTAStream stream = RTATelem::CTAStream(ctarta + "/share/rtatelem/rta_fadc_all.xml", "", "out_dummy_fadc.raw");
+        RTATelem::CTACameraTriggerData1* trtel = (RTATelem::CTACameraTriggerData1*) stream.getNewPacket(RTATelem::CTA_CAMERA_TRIGGERDATA_1_40);
  
         ///Number of events
         int numberOfEvent=20;
@@ -93,16 +98,18 @@ int main(int argc, char *argv[])
 
                 trtel->setNumberOfPixels(npixels);
 				cout << "ssc " << ssc << endl;
+
 				trtel->setNumberOfPixelsID(0);
+				trtel->setPixelBlocks(nsamples);
 
                 //set information of the pixels and sample
                 for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
                     //trtel->setPixelId(pixelindex, pixelindex);
-                    trtel->setNumberOfSamples(pixelindex, nsamples);
+                    //trtel->setNumberOfSamples(pixelindex, nsamples);
 					if(counts == 0) cout << pixelindex << " ";
                     for(int sampleindex=0; sampleindex<nsamples; sampleindex++) {
                     	int val = (int)(rand() % 255);
-                        trtel->setSampleValue(pixelindex, sampleindex, val);
+                        trtel->setSampleValueFixed(pixelindex, sampleindex, val);
 						if(counts == 0) cout << val << " ";
                     }
 					if(counts == 0) cout << endl;

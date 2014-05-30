@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
         	return 0;
         }
 
-		RTATelem::CTAStream stream(ctarta + "/share/rtatelem/rta_fadc1.xml", argv[1], "");
-		RTATelem::CTADecoder decoder(ctarta + "/share/rtatelem/rta_fadc1.xml");
+		RTATelem::CTAStream stream(ctarta + "/share/rtatelem/rta_fadc_all.xml", argv[1], "");
+		RTATelem::CTADecoder decoder(ctarta + "/share/rtatelem/rta_fadc_all.xml");
 
         ///Read a telemetry packet from .raw file. Return 0 if end of file
         ByteStreamPtr bs = stream.readPacket();
