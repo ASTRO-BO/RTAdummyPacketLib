@@ -32,6 +32,7 @@ EXE_NAME4 = RTAtest1
 EXE_NAME5 = RTAtest2alg
 EXE_NAME6 = RTAConfigLoader
 EXE_NAME7 = RTAcameraDraw
+EXE_NAME8 = RTAencoderPedestalRoot
 LIB_NAME = 
 VER_FILE_NAME = version.h
 #the name of the directory where the conf file are copied (into $(datadir))
@@ -174,7 +175,7 @@ all: exe
 
 lib: staticlib 
 
-exe: makeobjdir $(EXE_NAME1) $(EXE_NAME2) $(EXE_NAME3) $(EXE_NAME4) $(EXE_NAME6)
+exe: makeobjdir $(EXE_NAME1) $(EXE_NAME2) $(EXE_NAME3) $(EXE_NAME4) $(EXE_NAME6) $(EXE_NAME8)
 
 $(EXE_NAME1): $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
@@ -200,6 +201,9 @@ $(EXE_NAME6): $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME6) $(OBJECTS_DIR)/$(EXE_NAME6).o $(LIBS)
 
+$(EXE_NAME8): $(OBJECTS)
+	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
+	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME8) $(OBJECTS_DIR)/$(EXE_NAME8).o $(LIBS)
 
 staticlib: makelibdir makeobjdir $(OBJECTS)	
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	
@@ -235,6 +239,7 @@ clean:
 	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME3)
 	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME4)
 	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME6)
+	$(DEL_FILE) $(EXE_DESTDIR)/$(EXE_NAME8)
 	$(DEL_FILE) version
 	$(DEL_FILE) prefix
 	$(DEL_FILE) $(PROJECT).dvi
@@ -269,7 +274,7 @@ install: all
 	
 	# For exe installation
 	test -d $(bindir) || mkdir -p $(bindir)	
-	$(COPY_FILE) $(EXE_DESTDIR)/$(EXE_NAME1) $(EXE_DESTDIR)/$(EXE_NAME2) $(EXE_DESTDIR)/$(EXE_NAME3) $(EXE_DESTDIR)/$(EXE_NAME4) $(EXE_DESTDIR)/$(EXE_NAME6) $(bindir)
+	$(COPY_FILE) $(EXE_DESTDIR)/$(EXE_NAME1) $(EXE_DESTDIR)/$(EXE_NAME2) $(EXE_DESTDIR)/$(EXE_NAME3) $(EXE_DESTDIR)/$(EXE_NAME4) $(EXE_DESTDIR)/$(EXE_NAME6) $(EXE_DESTDIR)/$(EXE_NAME8) $(bindir)
 	#copy icon
 	#test -d $(icondir) || mkdir -p $(icondir)
 	#$(COPY_FILE) $(ICON_DIR)/$(ICON_NAME) $(icondir)
@@ -294,6 +299,7 @@ uninstall:
 	$(DEL_FILE) $(bindir)/$(EXE_NAME3)
 	$(DEL_FILE) $(bindir)/$(EXE_NAME4)
 	$(DEL_FILE) $(bindir)/$(EXE_NAME6)
+	$(DEL_FILE) $(bindir)/$(EXE_NAME8)
 	#$(DEL_FILE) $(icondir)/$(ICON_NAME)
 	
 #dist: create a distribution tar file for this program
