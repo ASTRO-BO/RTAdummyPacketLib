@@ -1,3 +1,12 @@
+2014-07-25 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
+<bulgarelli@iasfbo.inaf.it>, Valentina Fioretti <fioretti@iasfbo.inaf.it>
+TAG v1.4.0
+Dependencies: PacketLib v4.3.1, RTAtelem v1.5.0
+* Loading general XML.
+* RTAencoder/decoder for fadc_all.xml fixed.
+* RTAencoderPedestalRoot added.
+* Fix Makefile.
+
 2014-04-24 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
 <bulgarelli@iasfbo.inaf.it>, Valentina Fioretti <fioretti@iasfbo.inaf.it>
 TAG v1.3.0
