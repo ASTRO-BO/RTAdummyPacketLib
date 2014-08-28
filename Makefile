@@ -156,7 +156,7 @@ $(shell  cut $(INCLUDE_DIR)/$(VER_FILE_NAME) -f 3 > version)
 
 ####### 9) Pattern rules
 
-%.o : %.cpp
+%.o : %.cpp | makeobjdir
 	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -c $< -o $(OBJECTS_DIR)/$@
 
 #only for documentation generation
@@ -175,7 +175,7 @@ all: exe
 
 lib: staticlib 
 
-exe: makeobjdir $(EXE_NAME1) $(EXE_NAME2) $(EXE_NAME3) $(EXE_NAME4) $(EXE_NAME6) $(EXE_NAME8)
+exe: $(EXE_NAME1) $(EXE_NAME2) $(EXE_NAME3) $(EXE_NAME4) $(EXE_NAME6) $(EXE_NAME8)
 
 $(EXE_NAME1): $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
@@ -205,12 +205,13 @@ $(EXE_NAME8): $(OBJECTS)
 	test -d $(EXE_DESTDIR) || mkdir -p $(EXE_DESTDIR)
 	$(CXX) $(CPPFLAGS) $(ALL_CFLAGS) -o $(EXE_DESTDIR)/$(EXE_NAME8) $(OBJECTS_DIR)/$(EXE_NAME8).o $(LIBS)
 
-staticlib: makelibdir makeobjdir $(OBJECTS)	
+staticlib: $(OBJECTS)
 		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)	
 		$(DEL_FILE) $(LIB_DESTDIR)/$(TARGETA) 	
 		$(AR) $(LIB_DESTDIR)/$(TARGETA) $(OBJECTS_DIR)/*.o
 	
-dynamiclib: makelibdir makeobjdir $(OBJECTS)	
+dynamiclib: $(OBJECTS)
+		test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)
 		$(DEL_FILE) $(TARGET) $(TARGET0) $(TARGET1) $(TARGET2)
 		$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS_DIR)/*.o $(LIBS)
 		$(SYMLINK) $(TARGET) $(TARGET0)
@@ -225,9 +226,6 @@ dynamiclib: makelibdir makeobjdir $(OBJECTS)
 makeobjdir:
 	test -d $(OBJECTS_DIR) || mkdir -p $(OBJECTS_DIR)
 	
-makelibdir:
-	test -d $(LIB_DESTDIR) || mkdir -p $(LIB_DESTDIR)
-
 #clean: delete all files from the current directory that are normally created by building the program. 
 clean:
 	$(DEL_FILE) $(OBJECTS_DIR)/*.o
