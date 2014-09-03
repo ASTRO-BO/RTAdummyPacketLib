@@ -1,5 +1,5 @@
 /***************************************************************************
-                          RTAdecoder.cpp  -  description
+                          RTAdecoderPedestal.cpp  -  description
                              -------------------
     copyright            : (C) 2013 Andrea Bulgarelli
                                2013 Andrea Zoli
@@ -10,9 +10,9 @@
  ***************************************************************************/
 /***************************************************************************
 - Description:
-Decoding the raw binary packets.
+Decoding the raw binary packets containing the pedestal information.
 - Last modified:
-29/05/2014 (V. Fioretti)
+29/08/2014 (V. Fioretti)
 ****************************************************************************/
 /***************************************************************************
  *                                                                         *
@@ -29,7 +29,7 @@ Decoding the raw binary packets.
 
 #include <iostream>
 #include <stdlib.h>
-#include <CTACameraTriggerData1.h>
+#include <CTACameraPedestal1.h>
 #include <CTAPacket.h>
 #include <CTAStream.h>
 #include <CTADecoder.h>
@@ -62,8 +62,8 @@ int main(int argc, char *argv[])
         	return 0;
         }
 
-		RTATelem::CTAStream stream(ctarta + "/share/rtatelem/rta_fadc_all.xml", argv[1], "");
-		RTATelem::CTADecoder decoder(ctarta + "/share/rtatelem/rta_fadc_all.xml");
+		RTATelem::CTAStream stream(ctarta + "/share/rtatelem/rta_ped1.xml", argv[1], "");
+		RTATelem::CTADecoder decoder(ctarta + "/share/rtatelem/rta_ped1.xml");
 
         ///Read a telemetry packet from .raw file. Return 0 if end of file
         ByteStreamPtr bs = stream.readPacket();
@@ -80,62 +80,72 @@ int main(int argc, char *argv[])
 
 			// decode the byte stream
 			RTATelem::CTAPacket& packet = decoder.getPacket(bs);
-			
 			cout << "PacketType: " << packet.getPacketType() << endl;
-			cout << "CTA_CAMERA_TRIGGERDATA_1 type: " << RTATelem::CTA_CAMERA_TRIGGERDATA_1 << endl;				
+			cout << "CTA_CAMERA_PEDESTAL_1 type: " << RTATelem::CTA_CAMERA_PEDESTAL_1 << endl;				
 
-			if(packet.getPacketType() != RTATelem::CTA_CAMERA_TRIGGERDATA_1)
+/*
+			if(packet.getPacketType() != RTATelem::CTA_CAMERA_PEDESTAL_1)
 			{
-				cerr << "Proveded a wrong .raw file. Expecting a CTA_CAMERA_TRIGGERDATA_1 type." << endl;
+				cerr << "Proveded a wrong .raw file. Expecting a CTA_CAMERA_PEDESTAL_1 type." << endl;
 				return 0;
 			}
-			RTATelem::CTACameraTriggerData1& trtel = (RTATelem::CTACameraTriggerData1&) packet;
-			trtel.decode(true);
+*/
+			RTATelem::CTACameraPedestal1& pedtel = (RTATelem::CTACameraPedestal1&) packet;
+			pedtel.decode(true);
 
 			//access the packet header information
-			cout << "APID: " << trtel.header.getAPID() << endl;
-			cout << "ssc: " << trtel.header.getSSC() << endl;
+			cout << "APID: " << pedtel.header.getAPID() << endl;
+			cout << "ssc: " << pedtel.header.getSSC() << endl;
 
 			//access the metadata information (array id, run id, event id)
 			word arrayID;
 			word runNumberID;
-			trtel.header.getMetadata(arrayID, runNumberID);
+			pedtel.header.getMetadata(arrayID, runNumberID);
 			cout << "metadata: arrayID " << arrayID << " and runNumberID " << runNumberID << " " << endl;
-			cout << "subtype " << trtel.header.getSubType() << endl;
-			cout << "eventNumber:" << trtel.getEventNumber() << endl;
+			cout << "subtype " << pedtel.header.getSubType() << endl;
+			cout << "pedestalRun:" << pedtel.getPedestalRun() << endl;
 
-			//trigger time
-			cout << "Telescope Time " << trtel.header.getTime() << endl;
 
-			//the number of telescopes that have triggered
-			cout << "Triggered telescopes: " << (long) trtel.getNumberOfTriggeredTelescopes() << endl;
-
-			//the index (zero-based) of the telescope that has triggerd
-			cout << "Index Of Current Triggered Telescope " << (long) trtel.getIndexOfCurrentTriggeredTelescope() << endl;
 			//the id of the telescope that has triggered
-			cout << "TelescopeId " << trtel.getTelescopeId() << endl;
+			cout << "TelescopeId " << pedtel.getTelescopeId() << endl;
 
-			word nPixels = trtel.getNumberOfPixels();
+			word nPixels = pedtel.getNumberOfPixels();
 			cout << "NumberOfPixels " << nPixels << endl;
 
 			//work with a single pixel of the telescope
 			word pixelIndex=0;
 			
-			// PixelID removed because no longer exists in CTACameraTriggerData1
-			//cout << "PixelId " << trtel.getPixelId(pixelIndex) << endl;
-			//cout << "PixelId+1 " << trtel.getPixelId(pixelIndex+1) << endl;
+			cout << "----------------------------------------------------------------------------------" << endl;
+			cout << "Pedestal High for Pixel ID " << pixelIndex << " " << pedtel.getPedestalHighValue(pixelIndex) << endl;
+			cout << "Pedestal Low for Pixel ID " << pixelIndex << " " << pedtel.getPedestalLowValue(pixelIndex) << endl;
 
-			word nsamples = trtel.getNumberOfSamples(pixelIndex);
-			cout << "Samples: " << nsamples << endl;
+			word windowIndex=5;
+			cout << "PedVar High for Pixel ID " << pixelIndex << " and Window Index " << windowIndex << " " << pedtel.getPedVarHigh(pixelIndex, windowIndex) << endl;
+			cout << "PedVar Low for Pixel ID " << pixelIndex << " and Window Index " << windowIndex << " " << pedtel.getPedVarLow(pixelIndex, windowIndex) << endl;
+			cout << "----------------------------------------------------------------------------------" << endl;
 
-			word sampleIndex=0;
-			cout << "SampleValue " << trtel.getSampleValue(pixelIndex, sampleIndex) << endl;
+
+            for (int jpix = 0; jpix < 100; jpix++){
+            	cout << "Pedestal HIGH: " << pedtel.getPedestalHighValue(jpix) << endl;
+            	cout << "Pedestal LOW: " << pedtel.getPedestalLowValue(jpix) << endl;
+            	cout << "Time Zero: " << pedtel.getTimeZero(jpix) << endl;
+            	word nSumWindow = pedtel.getNumberSummingWindows(jpix);
+			    cout << "Number of summing windows " << nSumWindow << endl;
+
+                for (int jw = 0; jw < nSumWindow; jw++){
+                	cout << "Summing window: " << pedtel.getSumWindows(jw) << endl;
+                    cout << "Pedvar HIGH: " << pedtel.getPedVarHigh(jpix, jw) << endl;
+                    cout << "Pedvar LOW: " << pedtel.getPedVarLow(jpix, jw) << endl;
+                }
+            }
+
+/*
 
 			//******************
 			cout << "--- Direct access to array of samples" << endl;
 			//direct access to array of samples for each pixel
 			//1) get a pointer to ByteStream
-			ByteStreamPtr fadc = trtel.getPixelData(0);
+			ByteStreamPtr fadc = pedtel.getPixelData(0);
 			//cout << fadc->printStreamInHexadecimal() << endl;
 			//2) swap for endianess
 			fadc->swapWordForIntel();
@@ -150,7 +160,7 @@ int main(int argc, char *argv[])
 			for(int i=0; i < nsamples; i++)
 				cout << " | " << onlySamples[i];
 			cout << endl;
-
+*/
 			cout << "!counter of source packets " << counter << endl;
 
 			///Read a telemetry packet from .raw file

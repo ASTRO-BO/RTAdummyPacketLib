@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         /// The Packet containing the FADC value of each triggered telescope
         /// One packet for each triggered telescope
         RTATelem::CTAStream stream = RTATelem::CTAStream(ctarta + "/share/rtatelem/rta_ped1.xml", "", argv[2]);
-        RTATelem::CTACameraPedestal1* pedtel = (RTATelem::CTACameraPedestal1*) stream.getNewPacket(RTATelem::CTA_CAMERA_PEDESTAL_0);
+        RTATelem::CTACameraPedestal1* pedtel = (RTATelem::CTACameraPedestal1*) stream.getNewPacket(RTATelem::CTA_CAMERA_PEDESTAL_1);
 		RTAConfig::RTAConfigLoad ctaconf( ctarta + "/share/rtatelem/PROD2_telconfig.fits.gz" );
 
 
@@ -148,6 +148,8 @@ int main(int argc, char *argv[])
 		SSC_array.resize(NTelescopes);
 		
 		word ssc = 0;
+		int el_id = 0;
+        int tot_pedvar = 0;
         for(int telindex = 0; telindex<NTelescopes; telindex++) {
             cout << "--" << telindex << endl;
             /// Get entry from the tree
@@ -176,7 +178,6 @@ int main(int argc, char *argv[])
             pedtel->header.setSSC(ssc=SSC_array[SSC_index]);	//a unique counter of packets
             cout << "ssc " << ssc << endl;
 
-			cout << "DEBUG " << endl;	
                 
             pedtel->header.setMetadata(1, 2);	//the metadata
                 
@@ -185,57 +186,45 @@ int main(int argc, char *argv[])
             
             //pedestal information
             pedtel->setPedestalRun(pedestalRun);	//another metadata: the pedestal run number (e.g. provided by event builder?)
-			cout << "Pedestal run Number: " << pedestalRun << endl;
             pedtel->setTelescopeId(TelescopeId);	//the telescope unique id
 
             //camera information
                 
             //set the number of pixels and summing windows. In this way it is possible to manage different cameras with the same layout
-            // The attribute stores the number of samples
 
-            pedtel->setNumberOfPixels(npixels);
-				
-		    pedtel->setNumberOfPixelsID(0);
-
+            pedtel->setNumberOfPixels(npixels);				    
 
             //set information of the pixels and summing windows
             for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
  		    	pedtel->setNumberSummingWindows(pixelindex, num_sumwindow);           
-            	pedtel->setPedestalHighValue(pixelindex, 5.);
-            	pedtel->setPedestalLowValue(pixelindex, 10.);
-            	pedtel->setTimeZero(pixelindex, 72.);
+            	pedtel->setPedestalHighValue(pixelindex, ped_high[pixelindex]);
+            	pedtel->setPedestalLowValue(pixelindex, ped_low[pixelindex]);
+            	pedtel->setTimeZero(pixelindex, tzero[pixelindex]);
                 
                 for(int sumWindIndex=0; sumWindIndex<num_sumwindow; sumWindIndex++) {
                 
-                	pedtel->setPedVarHigh(pixelindex, sumWindIndex, 54.);
-                	pedtel->setPedVarLow(pixelindex, sumWindIndex, 27.);
+                	el_id = pixelindex*500 + sumWindIndex;
+                	int val_high = pedvar_high[el_id];
+                	int val_low = pedvar_low[el_id];
+                	pedtel->setPedVarHigh(pixelindex, sumWindIndex, val_high);
+                	pedtel->setPedVarLow(pixelindex, sumWindIndex, val_low);
                                 
                 }
-                /*
-                    for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
-                        trtel->setNumberOfSamples(pixelindex, nsamples);
-                        el_id = tot_slice_pix + sampleindex*2900 + pixelindex;
-                    	//int val = (int)(rand() % 255);
-                    	int val = Trace[el_id];
-                        trtel->setSampleValue(pixelindex, sampleindex, val);
-                    }*/
             }
            
             for(int sumWindIndex=0; sumWindIndex<num_sumwindow; sumWindIndex++) {
                 
-                	pedtel->setSumWindows(sumWindIndex, 100.);
+                	pedtel->setSumWindows(sumWindIndex, sumwindow[sumWindIndex]);
                                 
             }
-            
-            
-            //tot_slice_pix = tot_slice_pix + 500*2900;
+           
                 
             //and finally, write the packet to output (in this example, write the output to file)
             stream.writePacket(pedtel);
             SSC_array[SSC_index] = SSC_array[SSC_index] + 1;
 			counts++;
 
-            		
+         		
 
         }
         
@@ -243,7 +232,8 @@ int main(int argc, char *argv[])
         //printf ("It took me %d clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
         cout << "END " << counts << endl;
         
-        //delete Trace;
+        delete pedvar_high;
+        delete pedvar_low;
         return 0;
 
     }
