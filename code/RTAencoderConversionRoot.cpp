@@ -1,5 +1,5 @@
 /***************************************************************************
-                          RTAencoderPedestalRoot.cpp  -  description
+                          RTAencoderConversionRoot.cpp  -  description
                              -------------------
     copyright            : (C) 2013 Andrea Bulgarelli
                                2013 Andrea Zoli
@@ -25,7 +25,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include "CTAStream.h"
-#include "CTACameraPedestal1.h"
+#include "CTACameraConv1.h"
 #include "RTAConfigLoad.h"
 #include <time.h>
 #include <math.h>
@@ -66,10 +66,10 @@ int main(int argc, char *argv[])
             }
         }
 
-        /// The Packet containing the pedestal value of each telescope
-        /// One packet for each telescope
-        RTATelem::CTAStream stream = RTATelem::CTAStream(ctarta + "/share/rtatelem/rta_ped1.xml", "", argv[2]);
-        RTATelem::CTACameraPedestal1* pedtel = (RTATelem::CTACameraPedestal1*) stream.getNewPacket(RTATelem::CTA_CAMERA_PEDESTAL_1);
+        /// The Packet containing the conversion value of each telescope
+        /// One packet for each telescope        
+        RTATelem::CTAStream stream = RTATelem::CTAStream(ctarta + "/share/rtatelem/rta_conv1.xml", "", argv[2]);
+        RTATelem::CTACameraConv1* convtel = (RTATelem::CTACameraConv1*) stream.getNewPacket(RTATelem::CTA_CAMERA_CONVERSION_1);
 		RTAConfig::RTAConfigLoad ctaconf( ctarta + "/share/rtatelem/PROD2_telconfig.fits.gz" );
 
 
@@ -95,28 +95,14 @@ int main(int argc, char *argv[])
 	    /// Declaration of leaf types
         Int_t           TelID;
         UInt_t          NPixel;
-        UInt_t          num_sumwindow;
-        UInt_t          sumwindow[30];   //[num_sumwindow]
-        Float_t         ped_high[1855];   //[NPixel]
-        Float_t         *pedvar_high = new Float_t[1450000];
-        Float_t         ped_low[1855];   //[NPixel]
-        Float_t         *pedvar_low = new Float_t[1450000];
-        //Float_t         conv_high[1855];   //[NPixel]
-        //Float_t         conv_low[1855];   //[NPixel]
-        Float_t         tzero[1855];   //[NPixel]
+        Float_t         conv_high[1855];   //[NPixel]
+        Float_t         conv_low[1855];   //[NPixel]
 	    
         // List of branches
         TBranch        *b_TelID;   //!
         TBranch        *b_NPixel;   //!
-        TBranch        *b_num_sumwindow;   //!
-        TBranch        *b_sumwindow;   //!
-        TBranch        *b_ped_high;   //!
-        TBranch        *b_pedvar_high;   //!
-        TBranch        *b_ped_low;   //!
-        TBranch        *b_pedvar_low;   //!
-        //TBranch        *b_conv_high;   //!
-        //TBranch        *b_conv_low;   //!
-        TBranch        *b_tzero;   //!
+        TBranch        *b_conv_high;   //!
+        TBranch        *b_conv_low;   //!
         
         root_file = new TFile(argv[1]);
         root_file->ls();
@@ -127,18 +113,11 @@ int main(int argc, char *argv[])
         /// Setting the address
         cal_tree->SetBranchAddress("TelID", &TelID, &b_TelID);
 	    cal_tree->SetBranchAddress("NPixel", &NPixel, &b_NPixel);
- 	    cal_tree->SetBranchAddress("num_sumwindow", &num_sumwindow, &b_num_sumwindow);
-	    cal_tree->SetBranchAddress("sumwindow", sumwindow, &b_sumwindow); 	    
-	    cal_tree->SetBranchAddress("ped_high", ped_high, &b_ped_high);
-	    cal_tree->SetBranchAddress("pedvar_high", pedvar_high, &b_pedvar_high);
-	    cal_tree->SetBranchAddress("ped_low", ped_low, &b_ped_low);
-	    cal_tree->SetBranchAddress("pedvar_low", pedvar_low, &b_pedvar_low);
-	    //cal_tree->SetBranchAddress("conv_high", conv_high, &b_conv_high);
-	    //cal_tree->SetBranchAddress("conv_low", conv_low, &b_conv_low);
-	    cal_tree->SetBranchAddress("tzero", tzero, &b_tzero);
+	    cal_tree->SetBranchAddress("conv_high", conv_high, &b_conv_high);
+	    cal_tree->SetBranchAddress("conv_low", conv_low, &b_conv_low);
 	     	    
-        // Pedestal run number
-        int pedestalRun = 1;
+        // Conversion run number
+        int conversionRun = 1;
 
         /// Looping in the triggered events
         srand(0);
@@ -148,8 +127,6 @@ int main(int argc, char *argv[])
 		SSC_array.resize(NTelescopes);
 		
 		word ssc = 0;
-		int el_id = 0;
-        int tot_pedvar = 0;
         for(int telindex = 0; telindex<NTelescopes; telindex++) {
             cout << "--" << telindex << endl;
             /// Get entry from the tree
@@ -163,10 +140,10 @@ int main(int argc, char *argv[])
             // The attribute stores the number of pixels
             word npixels =  (*camTypeStruct).NPixel;
 				
-			cout << TelescopeId << " " << telType << " " << npixels << " " << num_sumwindow << endl;
+			cout << TelescopeId << " " << telType << " " << npixels << endl;
                 
             //set the header of the tm packet
-            pedtel->header.setAPID(TelescopeId); 	//the data generator (for now, the telescope)
+            convtel->header.setAPID(TelescopeId); 	//the data generator (for now, the telescope)
                 
             for (int j = 0; j < vectorTelID.size(); j++){
                 if (TelescopeId == vectorTelID[j]){
@@ -175,53 +152,34 @@ int main(int argc, char *argv[])
                 }
             }
                 
-            pedtel->header.setSSC(ssc=SSC_array[SSC_index]);	//a unique counter of packets
+            convtel->header.setSSC(ssc=SSC_array[SSC_index]);	//a unique counter of packets
             cout << "ssc " << ssc << endl;
 
                 
-            pedtel->header.setMetadata(1, 2);	//the metadata
+            convtel->header.setMetadata(1, 2);	//the metadata
                 
-            pedtel->header.setSubType(0); //important, for fast packet identification
+            convtel->header.setSubType(0); //important, for fast packet identification
 			
             
             //pedestal information
-            pedtel->setPedestalRun(pedestalRun);	//another metadata: the pedestal run number (e.g. provided by event builder?)
-            pedtel->setTelescopeId(TelescopeId);	//the telescope unique id
+            convtel->setConversionRun(conversionRun);	//another metadata: the conversion run number (e.g. provided by event builder?)
+            convtel->setTelescopeId(TelescopeId);	//the telescope unique id
 
             //camera information
                 
-            //set the number of pixels and summing windows. In this way it is possible to manage different cameras with the same layout
+            //set the number of pixels. In this way it is possible to manage different cameras with the same layout
 
-            pedtel->setNumberOfCalibrationPixels(npixels);				    
+            convtel->setNumberOfCalibrationPixels(npixels);				    
 
             //set information of the pixels and summing windows
             for(int pixelindex=0; pixelindex<npixels; pixelindex++) {
- 		    	pedtel->setNumberSummingWindows(pixelindex, num_sumwindow);           
-            	pedtel->setPedestalHighValue(pixelindex, ped_high[pixelindex]);
-            	pedtel->setPedestalLowValue(pixelindex, ped_low[pixelindex]);
-            	pedtel->setTimeZero(pixelindex, tzero[pixelindex]);
-
-                
-                for(int sumWindIndex=0; sumWindIndex<num_sumwindow; sumWindIndex++) {
-                
-                	el_id = pixelindex*500 + sumWindIndex;
-                	int val_high = pedvar_high[el_id];
-                	int val_low = pedvar_low[el_id];
-                	pedtel->setPedVarHigh(pixelindex, sumWindIndex, val_high);
-                	pedtel->setPedVarLow(pixelindex, sumWindIndex, val_low);
-                                
-                }
-            }
+            	convtel->setConversionHighValue(pixelindex, conv_high[pixelindex]);
+            	convtel->setConversionLowValue(pixelindex, conv_low[pixelindex]);
+           }
            
-            for(int sumWindIndex=0; sumWindIndex<num_sumwindow; sumWindIndex++) {
-                
-                	pedtel->setSumWindows(sumWindIndex, sumwindow[sumWindIndex]);
-                                
-            }
-           
-                
+               
             //and finally, write the packet to output (in this example, write the output to file)
-            stream.writePacket(pedtel);
+            stream.writePacket(convtel);
             SSC_array[SSC_index] = SSC_array[SSC_index] + 1;
 			counts++;
 
@@ -232,9 +190,7 @@ int main(int argc, char *argv[])
         t = clock() - t;
         //printf ("It took me %d clicks (%f seconds).\n",t,((float)t)/CLOCKS_PER_SEC);
         cout << "END " << counts << endl;
-        
-        delete pedvar_high;
-        delete pedvar_low;
+
         return 0;
 
     }
