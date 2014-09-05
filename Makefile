@@ -75,9 +75,9 @@ ICON_DIR = ui
 
 ####### 4) Compiler, tools and options
 
-CXX      = g++
+CXX ?= g++
 #Insert the optional parameter to the compiler. The CFLAGS could be changed externally by the user
-CFLAGS   = -g -std="c++0x" -O0 
+CFLAGS ?= -O2
 #Set INCPATH to add the inclusion paths
 INCPATH = -I ./include  -I $(CTARTA)/include -I$(CTARTA)/include/packet -L$(CTARTA)/lib
 #Insert the implicit parameter to the compiler:
@@ -86,7 +86,7 @@ ifeq ($(SYSTEM), QNX)
 	ALL_CFLAGS += -Vgcc_ntox86_gpp -lang-c++
 endif
 #Use CPPFLAGS for the preprocessor
-CPPFLAGS =  -m64 
+CPPFLAGS ?=
 #Set LIBS for addition library
 LIBS = $(INCPATH) -lstdc++ -lRTAtelem -lRTAconfig -lpacket -lQLBase 
 
@@ -111,7 +111,7 @@ ifneq (, $(findstring root, $(LINKERENV)))
     ALL_CFLAGS += $(ROOTCONF)
 endif
 
-LINK     = g++
+LINK     = $(CXX)
 #for link
 LFLAGS = -shared -Wl,-soname,$(TARGET1) -Wl,-rpath,$(DESTDIR)
 AR       = ar cqs
