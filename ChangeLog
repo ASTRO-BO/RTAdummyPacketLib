@@ -1,3 +1,13 @@
+2014-12-12 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
+<bulgarelli@iasfbo.inaf.it>, Valentina Fioretti <fioretti@iasfbo.inaf.it>
+TAG v1.5.0
+* Remove -O in Makefile.
+* Use conditional assignment for CXX, CFLAGS and LINK in Makefiles.
+* Using setFieldValue for float
+* Makefile updated
+* Encoder/decoder for pedestal added
+* Fixed Makefile for parallel build.
+
 2014-07-25 Andrea Zoli <zoli@iasfbo.inaf.it>, Andrea Bulgarelli
 <bulgarelli@iasfbo.inaf.it>, Valentina Fioretti <fioretti@iasfbo.inaf.it>
 TAG v1.4.0
